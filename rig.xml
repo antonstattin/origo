@@ -1,0 +1,13 @@
+<origo.core.component.RigRoot id="123123" koll="Root" name="Root" var="1">
+ <origo.core.component.RigLayer id="123123" koll="layer_A" name="layer_A" var="1">
+  <origo.core.component.RigComponent id="123123" koll="A" name="A" var="1"/>
+  <origo.core.component.RigLayer id="123123" koll="layer_B" name="layer_B" var="1">
+   <origo.core.component.RigLayer id="123123" koll="layer_C" name="layer_C" var="1">
+    <origo.core.component.RigLayer id="123123" koll="layer_D" name="layer_D" var="1">
+     <origo.core.component.RigComponent id="123123" koll="C" name="C" var="1"/>
+    </origo.core.component.RigLayer>
+   </origo.core.component.RigLayer>
+  </origo.core.component.RigLayer>
+ </origo.core.component.RigLayer>
+ <origo.core.component.RigComponent id="123123" koll="B" name="B" var="1"/>
+</origo.core.component.RigRoot>

@@ -1,18 +1,21 @@
 
 import os
+import sys
 import logging
 
 #Qt imports
-try: from Qt import QtCore, QtWidgets, QtGui
+try: from SHARED.Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
-from gui import icons
+from uiutils import icons
 
 # import core modules
-from core import rigcontrol, model
-import gui.signals.mainwindowsignals as signals
+from base import rigcontrol, rigmodel
+
+import uiutils.signals.mainwindowsignals as signals
+
 reload(signals)
-reload(model)
+reload(rigmodel)
 reload(rigcontrol)
 
 # setup logger
@@ -51,16 +54,19 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         self._QSettings =  QtCore.QSettings("Origo", "origo_ui")
         self._qssFile = os.path.join(os.path.dirname(__file__),
-                                     "gui/style/default.qss")
+                                     "uiutils/style/default.qss")
 
-        self._rigctl = rigcontrol.RigControl()
-        self._rigmodel = model.RigModel(self._rigctl)
+        self._rigcontrol = rigcontrol.RigControl()
+        self._rigmodel = rigmodel.RigModel(self._rigcontrol.getData())
 
         # build ui
         self._buildUI()
 
         # set model
         self.treeview.setModel(self._rigmodel)
+        self.treeview.setDragDropMode( self.treeview.InternalMove )
+        self.treeview.setDragEnabled( True )
+        self.treeview.setAcceptDrops( True )
 
         # load last ui settings
         self._readUISettings()
@@ -104,8 +110,11 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self._QSettings.beginGroup("MainWindow");
         self.resize(self._QSettings.value("size", QtCore.QSize(400, 400)))
         self.move(self._QSettings.value("pos", QtCore.QPoint(200, 200)))
+
+
         with open(self._QSettings.value("theme", self._qssFile),"r") as qss:
             self.setStyleSheet(qss.read())
+
 
         self._QSettings.endGroup()
 
@@ -120,3 +129,14 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self._QSettings.endGroup()
 
         event.accept()
+
+
+if __name__ == '__main__':
+
+
+    app = QtGui.QApplication(sys.argv)
+
+    win = UI()
+    win.show()
+
+    sys.exit(app.exec_())
