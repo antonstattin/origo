@@ -58,6 +58,10 @@ class RigObject(object):
 	def data(self, column):
 		if   column is 0: return self._name
 
+	def setData(self, column, value):
+		print column, value
+		if   column is 0: self._name = value
+
 class RigComponent(RigObject):
 
 	def __init__(self, name, parent=None):
