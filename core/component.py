@@ -1,4 +1,10 @@
 
+try: from SHARED.Qt import QtCore, QtWidgets, QtGui, QtXml
+except: from PySide2 import QtCore, QtWidgets, QtGui, QtXml
+
+from collections import OrderedDict
+
+
 class RigObject(object):
 
 	def __init__(self, name, parent=None):
@@ -6,6 +12,10 @@ class RigObject(object):
 
 		self._properties = {}
 
+		self._data = [["name", name, {}],
+					  ["parent", parent, {}],
+					  ["id", "123123", {}],
+					  ["var", True, {}]]
 		self._name = name
 		self._children = []
 		self._parent = parent
@@ -61,6 +71,52 @@ class RigObject(object):
 	def setData(self, column, value):
 		print column, value
 		if   column is 0: self._name = value
+
+
+
+	def attrs(self):
+
+		kv = []
+		print "Ordered"
+
+		for data in self._data:
+			kv.append([data[0],data[1]])
+
+		return kv
+
+	def asXml(self):
+
+		doc = QtXml.QDomDocument()
+
+		node = doc.createElement(self.typeInfo())
+
+		for data in self._data:
+			node.setAttribute(data[0], data[1])
+
+		doc.appendChild(node)
+
+		for i in self._children:
+			i._recurseXml(doc, node)
+
+		return doc.toString(indent=4)
+
+	def _recurseXml(self, doc, parent):
+		node = doc.createElement(self.typeInfo())
+		parent.appendChild(node)
+
+		attrs = self.attrs()
+
+		for data in self._data:
+			node.setAttribute(str(data[0]), str(data[1]))
+
+		for i in self._children:
+			i._recurseXml(doc, node)
+
+	def typeInfo(self):
+
+		return str("%s.%s"%(self.__class__.__module__,
+							self.__class__.__name__))
+
 
 class RigComponent(RigObject):
 

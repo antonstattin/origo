@@ -1,9 +1,10 @@
 #Qt imports
-try: from Qt import QtCore, QtWidgets, QtGui
+try: from SHARED.Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 
 class RigModel(QtCore.QAbstractItemModel):
+
     def __init__(self, controller, parent=None):
         super(RigModel, self).__init__(parent)
         self._root = controller.getData()
