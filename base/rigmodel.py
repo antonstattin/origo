@@ -5,6 +5,9 @@ import cPickle
 
 class RigModel(QtCore.QAbstractItemModel):
 
+	sortRole   = QtCore.Qt.UserRole
+	filterRole = QtCore.Qt.UserRole + 1
+
 	def __init__(self, root, parent=None):
 		super(RigModel, self).__init__(parent)
 
@@ -13,7 +16,6 @@ class RigModel(QtCore.QAbstractItemModel):
 
 	def data(self, index, role):
 		""" return data to view """
-
 
 		if not index.isValid(): return None
 
@@ -29,8 +31,15 @@ class RigModel(QtCore.QAbstractItemModel):
 			# set icon
 			if role == QtCore.Qt.DecorationRole and rigNode._type:
 				return QtGui.QIcon(QtGui.QPixmap(rigNode.get('icon')))
+
+			if role == RigModel.sortRole:
+				return rigNode.get('name')
+
+			if role == RigModel.filterRole:
+				return rigNode.get('name')
+
 		else:
-			if role == QtCore.Qt.DecorationRole and rigNode._type:
+			if role == QtCore.Qt.DecorationRole and rigNode._type == 2:
 				# get current stage
 				stage = rigNode.get('bstage')
 
@@ -39,8 +48,6 @@ class RigModel(QtCore.QAbstractItemModel):
 				not_done_icon = QtGui.QIcon(QtGui.QPixmap(":/play.png"))
 
 				# set a visual representation of current stage
-
-
 
 				if index.column() == 1:
 					if stage > 0: return done_icon
@@ -56,7 +63,7 @@ class RigModel(QtCore.QAbstractItemModel):
 
 
 	def setData(self, index, value, role=QtCore.Qt.EditRole):
-		""" set data """
+		""" set model data """
 
 		if index.isValid():
 			rigNode = index.internalPointer()
@@ -74,7 +81,7 @@ class RigModel(QtCore.QAbstractItemModel):
 		return QtCore.Qt.MoveAction | QtCore.Qt.CopyAction
 
 	def flags(self, index):
-		""" set flags """
+		""" set item flags """
 
 		if index.column() == 0:
 			return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled | \
@@ -94,8 +101,8 @@ class RigModel(QtCore.QAbstractItemModel):
 			return ["Component Name", "Pre", "Run", "Post"][col]
 
 		if role == QtCore.Qt.DecorationRole:
-			resource = [":/done.png", ":/done.png",
-						":/done.png", ":/done.png"][col]
+			resource = [":/console.png", ":/planing.png",
+						":/build.png", ":/connect.png"][col]
 
 			return QtGui.QIcon(QtGui.QPixmap(resource))
 
@@ -112,8 +119,9 @@ class RigModel(QtCore.QAbstractItemModel):
 		""" return the number of columns """
 		return 4
 
-
-	# # # # # # # # # TEST # # # # # # # # #
+	def remove(self, row, count, index):
+		""" remove node and subnodes """
+		self.removeRows(row, count, index.parent())
 
 	def insertRows(self, row, count, parentIndex):
 		self.beginInsertRows(parentIndex, row, row+count-1)
@@ -125,11 +133,15 @@ class RigModel(QtCore.QAbstractItemModel):
 		parent =  self.getRigNode(parentIndex)
 		parent.removeChild(row)
 		self.endRemoveRows()
+		self.dataChanged.emit( parentIndex, parentIndex )
 		return True
 
-	def mimeTypes(self): return ['application/x-pyobj']
+	def mimeTypes(self):
+		""" return mime types """
+		return ['application/x-pyobj']
 
 	def mimeData(self, index):
+		""" create mime data """
 		rignode = self.getRigNode(index[0])
 		data = cPickle.dumps(rignode)
 
@@ -139,7 +151,7 @@ class RigModel(QtCore.QAbstractItemModel):
 		return mimedata
 
 	def dropMimeData(self, mimedata, action, row, column, parentIndex):
-
+		""" emit drop mime data """
 
 		if not mimedata.hasFormat( 'application/x-pyobj' ): return False
 
@@ -149,7 +161,6 @@ class RigModel(QtCore.QAbstractItemModel):
 		self.insertRows( len(dropParent.getChildren())-1, 1, parentIndex )
 		self.dataChanged.emit( parentIndex, parentIndex )
 		return True
-	# # # # # # # # # TEST # # # # # # # # #
 
 	def index(self, row, column, parentIndex):
 		""" return the model index """
@@ -178,3 +189,47 @@ class RigModel(QtCore.QAbstractItemModel):
 			if rigNode: return rigNode
 
 		return self._root
+
+class RigProxyModel(QtCore.QSortFilterProxyModel):
+	''' Recursive sort proxy
+	'''
+
+	def filterAcceptsRow(self, row_num, source_parent):
+		''' Overriding the parent function '''
+
+		# Check if the current row matches
+		if self.filter_accepts_row_itself(row_num, source_parent):
+			return True
+
+		# Traverse up all the way to root and check if any of them match
+		if self.filter_accepts_any_parent(source_parent):
+			return True
+
+		# Finally, check if any of the children match
+		return self.has_accepted_children(row_num, source_parent)
+
+	def filter_accepts_row_itself(self, row_num, parent):
+		return super(RigProxyModel, self).filterAcceptsRow(row_num, parent)
+
+	def filter_accepts_any_parent(self, parent):
+		''' Traverse to the root node and check if any of the
+			ancestors match the filter
+		'''
+		while parent.isValid():
+			if self.filter_accepts_row_itself(parent.row(), parent.parent()):
+				return True
+			parent = parent.parent()
+		return False
+
+	def has_accepted_children(self, row_num, parent):
+		''' Starting from the current node as root, traverse all
+			the descendants and test if any of the children match
+		'''
+		model = self.sourceModel()
+		source_index = model.index(row_num, 0, parent)
+
+		children_count =  model.rowCount(source_index)
+		for i in xrange(children_count):
+			if self.filterAcceptsRow(i, source_index):
+				return True
+		return False

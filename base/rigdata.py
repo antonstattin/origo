@@ -260,8 +260,8 @@ class RigComponent(RigNode, RigData, RigBuilder):
 		self._type = RigObjectType.Component
 
 		# create attributes
-		self.add('icon', ':/done.png')
-		self.add('color', (120, 120, 120))
+		self.add('icon', ':/code.png')
+		self.add('color', (140, 140, 140))
 
 	def log(self, msg):
 		""" override rigbuilder log function and add component name
@@ -309,5 +309,5 @@ class RigLayer(RigNode, RigData):
 		self._type = RigObjectType.Layer
 
 		# create attributes
-		self.add('icon', ':/done.png')
-		self.add('color', (120, 120, 120))
+		self.add('icon', ':/layer.png')
+		self.add('color', (190, 190, 190))

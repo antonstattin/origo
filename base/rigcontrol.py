@@ -14,7 +14,8 @@ class RigControl(object):
 		layer = rigdata.RigLayer(self._root)
 		component = rigdata.RigComponent(layer)
 		component = rigdata.RigComponent(self._root)
-
+		component = rigdata.RigComponent(self._root)
+		component.set('name', 'lol')
 		component.set('bstage', 2)
 
 	def getData(self):

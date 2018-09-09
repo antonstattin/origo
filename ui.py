@@ -13,7 +13,8 @@ from uiutils import icons
 from base import rigcontrol, rigmodel
 
 import uiutils.signals.mainwindowsignals as signals
-
+import uiutils.widgets.rigtreeview as rigtreeview
+reload(rigtreeview)
 reload(signals)
 reload(rigmodel)
 reload(rigcontrol)
@@ -59,14 +60,25 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self._rigcontrol = rigcontrol.RigControl()
         self._rigmodel = rigmodel.RigModel(self._rigcontrol.getData())
 
+
         # build ui
         self._buildUI()
 
+        # setup proxy model
+        self._proxyModel = rigmodel.RigProxyModel(self)
+
+        self._proxyModel.setSourceModel(self._rigmodel)
+
+        self._proxyModel.setDynamicSortFilter(True)
+        self._proxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self._proxyModel.setSortRole(rigmodel.RigModel.sortRole)
+        self._proxyModel.setFilterRole(rigmodel.RigModel.filterRole)
+        self._proxyModel.setFilterKeyColumn(0)
+
+
         # set model
-        self.treeview.setModel(self._rigmodel)
-        self.treeview.setDragDropMode( self.treeview.InternalMove )
-        self.treeview.setDragEnabled( True )
-        self.treeview.setAcceptDrops( True )
+        self.treeview.setModel(self._proxyModel)
 
         # load last ui settings
         self._readUISettings()
@@ -80,12 +92,15 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         # create central widget
         self.mainframe = QtWidgets.QFrame()
-        self.mainframe.setLayout(QtWidgets.QHBoxLayout())
+        self.mainframe.setLayout(QtWidgets.QVBoxLayout())
         self.setCentralWidget(self.mainframe)
 
-        self.treeview = QtWidgets.QTreeView()
+        self.treeviewfilterEdit = QtWidgets.QLineEdit()
+        self.treeview = rigtreeview.RigTreeView()
 
+        self.mainframe.layout().addWidget(self.treeviewfilterEdit)
         self.mainframe.layout().addWidget(self.treeview)
+
     def changeStyle(self, qssfile):
         """ change to custom theme by reading a .qss file
             :param qssfile: the qss file with disired stylesheet
@@ -103,17 +118,15 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         """ read settings from last opened window """
         logger.debug("UI._readUISettings: reading settings")
 
-        for column in [1,2,3]:
-            self.treeview.header().setSectionResizeMode(column, QtWidgets.QHeaderView.Fixed)
-            self.treeview.setColumnWidth(column, 50)
-
+        # get QSettings for mainwindow
         self._QSettings.beginGroup("MainWindow");
         self.resize(self._QSettings.value("size", QtCore.QSize(400, 400)))
         self.move(self._QSettings.value("pos", QtCore.QPoint(200, 200)))
 
-
-        with open(self._QSettings.value("theme", self._qssFile),"r") as qss:
-            self.setStyleSheet(qss.read())
+        sQssPath = self._QSettings.value("theme", self._qssFile)
+        if os.path.exists(sQssPath):
+            with open(sQssPath,"r") as qss:
+                self.setStyleSheet(qss.read())
 
 
         self._QSettings.endGroup()

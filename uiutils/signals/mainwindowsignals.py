@@ -6,4 +6,6 @@ except: from PySide2 import QtCore, QtWidgets, QtGui
 class MainWindowSignals(object):
 
     def __init__(self):
-        print "signals init"
+
+        self.treeviewfilterEdit.textChanged.connect(self._proxyModel.setFilterRegExp)
+        
