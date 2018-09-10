@@ -10,14 +10,14 @@ except: from PySide2 import QtCore, QtWidgets, QtGui
 from uiutils import icons
 
 # import core modules
-from base import rigcontrol, rigmodel
+from base import rigcontrol, rigmodel, rigdata
 
 import uiutils.signals.mainwindowsignals as signals
-from uiutils.widgets import rigtreeview, rigproperties, rigxml, newprojectdialog
-#reload(rigxml)
-#reload(signals)
-reload(rigcontrol)
+from uiutils.docks import rigtreeview, rigproperties, rigxml
+from uiutils.dialogs import newprojectdialog
 reload(rigproperties)
+reload(rigmodel)
+reload(rigcontrol)
 
 # setup logger
 logger = logging.getLogger("Origo")
@@ -29,42 +29,33 @@ def inMaya(debug=logging.INFO, root=None):
     import maya.cmds as cmds
     from shiboken2 import wrapInstance
 
+    # prevent duplicate windows in maya
+    _MA_SINGELTON_WIN_OBJ_NAME = "OrigoUI"
+
+    if (cmds.window(_MA_SINGELTON_WIN_OBJ_NAME, exists=True)):
+        cmds.deleteUI(_MA_SINGELTON_WIN_OBJ_NAME)
+
     mwptr = omui.MQtUtil.mainWindow()
     mayawindow = wrapInstance(long(mwptr), QtWidgets.QWidget)
+    """
+     <model_layer bstage="0" color="(190, 190, 190)" class="RigLayer" regdata="{'pre': {}, 'post': {}, 'build': {}}" id="325ad2c7" name="model_layer" icon=":/layer.png" module="origo.base.rigdata" outputs="{}" inputs="{}">
+      <ImportModel bstage="0" color="(140, 140, 140)" class="MAssetImport" regdata="{'pre': {}, 'post': {}, 'build': {}}" id="36c5d58d" name="ImportModel" icon=":/code.png" module="origo.builders.components.maya.util.massetimport" assetpath="C:/Users/Anton/Desktop/tower.fbx" parentmodel="1" outputs="{}" inputs="{}"/>
+     </model_layer>
+    """
 
+    if not root: root = rigdata.RigRoot('unamed', '/')
 
-    def _inMaya(debug, root):
-        """ opens the ui in maya with the standard maya pointer proc"""
-
-        logger.setLevel(debug)
-
-        # prevent duplicate windows in maya
-        _MA_SINGELTON_WIN_OBJ_NAME = "OrigoUI"
-
-        if (cmds.window(_MA_SINGELTON_WIN_OBJ_NAME, exists=True)):
-            cmds.deleteUI(_MA_SINGELTON_WIN_OBJ_NAME)
-
-        win = UI(root, mayawindow)
-        win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
-        win.show()
-
-        return win
-
-    if root: return _inMaya(debug, root)
-
-    win = newprojectdialog.NewProjectDialog(debug, mayawindow)
-    win.accept.connect(_inMaya)
+    win = UI(root, mayawindow)
+    win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
     win.show()
 
-
+    return win
 
 class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
     def __init__(self, root, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
         logger.debug("UI.__init__")
-
-        self.setWindowTitle('Origo')
 
         self._QSettings =  QtCore.QSettings("Origo", "origo_ui")
         self._qssFile = os.path.join(os.path.dirname(__file__),
@@ -89,6 +80,18 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         logger.debug("signals.__init__")
         signals.MainWindowSignals.__init__(self)
+
+        self.updateTitle()
+
+    def updateTitle(self):
+
+        # get projname
+        projname = self._rigcontrol._root.get('projectname')
+        projpath = self._rigcontrol._root.get('projectpath')
+
+        # get version
+
+        self.setWindowTitle('Origo Rig System | %s | %s '%(projname, projpath))
 
     def _buildMenuBar(self):
 

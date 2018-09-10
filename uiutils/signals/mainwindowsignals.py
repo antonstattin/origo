@@ -3,6 +3,7 @@ try: from SHARED.Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 import origo.uiutils.widgets.newprojectdialog as newprojdialog
+import origo.base.rigdata as rigdata
 
 class MainWindowSignals(object):
 
@@ -25,8 +26,8 @@ class MainWindowSignals(object):
         self._rigcontrol.saveRigxXml()
 
     def _fileNewFnc(self):
-        new_project =  newprojdialog.NewProjectDialog(self)
-        new_project.show()
+        self._rigcontrol.setRoot(rigdata.RigRoot('newproject', '/'))
+        self.updateTitle()
 
     def _winOpenXmlWin(self):
         if self.rigXmlDock.isVisible(): return

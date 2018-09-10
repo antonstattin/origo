@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger("Origo")
 
 import rigdata
+import copy
 import xml.etree.ElementTree as ET
 import importlib
 
@@ -27,13 +28,26 @@ class RigControl(object):
 
 		self._model
 
+	def addNewComponent(self, component, parent=None):
+
+		if not parent: parent = self._root
+
+		obj = component(parent)
+		#new_root = copy.deepcopy(self._root)
+		#self.setRoot(new_root)
+
+		if self._model:
+			model = self._model.sourceModel()
+			model.dataChanged.emit(0, 0)
+			model.layoutChanged.emit()
+
+
 	def updateSourceModel(self):
 
 		if self._model:
 			model = self._model.sourceModel()
 			model.dataChanged.emit(0, 0)
 			self._model.dataChanged.emit(0, 0)
-
 			QtCore.QCoreApplication.processEvents()
 
 	def buildRig(self, root=None):
@@ -70,8 +84,6 @@ class RigControl(object):
 			mod.set('bstage', 3)
 
 			self.updateSourceModel()
-
-
 
 	def rigToXml(self):
 		""" serialize rig into xml """
@@ -184,7 +196,6 @@ class RigControl(object):
 
 			rigmod = importlib.import_module(mod)
 			rigobj = getattr(rigmod, modcls)(parentobj)
-
 
 			for key in child.attrib.keys():
 				value = child.attrib[key]

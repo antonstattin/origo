@@ -20,15 +20,6 @@ class RigModel(QtCore.QAbstractItemModel):
 		self.dataChanged.emit(0, 0)
 		self.layoutChanged.emit()
 
-	def addRigNode(self, node, index=None):
-		""" add node to rigmodel """
-
-		if index: parent = self.getRigNode(index)
-		else: parent = self._root
-
-		node(parent)
-		self.layoutChanged.emit()
-
 	def data(self, index, role):
 		""" return data to view """
 
@@ -222,13 +213,13 @@ class RigProxyModel(QtCore.QSortFilterProxyModel):
 	def setRoot(self, root):
 		""" set root """
 		model = self.sourceModel()
-		model._root = root
-
+		model.setRoot(root)
+		"""
 		self.dataChanged.emit(0, 0)
 		self.layoutChanged.emit()
 		model.dataChanged.emit(0, 0)
 		model.layoutChanged.emit()
-
+		"""
 
 	def filterAcceptsRow(self, row_num, source_parent):
 		''' Overriding the parent function '''

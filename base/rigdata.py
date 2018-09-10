@@ -132,12 +132,16 @@ class RigData(object):
 
 		self._dataDict = OrderedDict()
 
+		# controll object so we can access the tree through every component
+		self._controller = None
+
 		# add default parameters
 		self.add('name', str(self.__class__.__name__))
 		self.add('id', str(uuid.uuid4()).partition("-")[0])
 		self.add('class', self.__class__.__name__)
 		self.add('module', self.__class__.__module__)
 		self.add('bstage', 0)
+		self.add('enabled', 1)
 
 		# special data
 		self.add('regdata', {'pre':{}, 'build':{}, 'post':{}})
@@ -233,13 +237,20 @@ class RigData(object):
 		return [(key, d['value']) for key, d in self._dataDict.items()]
 
 	def getPublicAttributes(self):
+		""":returns: returns all public attributes and meta data (used for UI creation)"""
 		publicfilter = filter(lambda items: items[1]['meta']['public'],
 							  self._dataDict.items())
 
 		return [(key, data) for key, data in publicfilter]
 
+	def setController(self, controller):
+		""" set controller """
+		self._controller = controller
+
 	def getController(self):
-		""":return: returns the current rig controller"""
+		""" get controller to access other mods """
+		if self._controller: return self._controller
+		return None
 
 # ------------------- private methods ------------------------ #
 
@@ -252,14 +263,13 @@ class RigData(object):
 	def _setData(self, column, value):
 		""" set data from model """
 
+		if len(self._dataDict.keys())-1 < column: return
+
+
 		key = self._dataDict.keys()[column]
 		self._dataDict[key]['value'] = value
 
-
-
 # ------------------- Enum Classes ------------------------ #
-
-
 class RigObjectType():
 	""" enum class for rig object types """
 	Root = 0
@@ -320,6 +330,9 @@ class RigRoot(RigNode, RigData, RigBuilder):
 		self.add('projectname', projectname)
 		self.add('projectpath', projectpath)
 
+	def findChild(self, id):
+		for child in self._getRecursiveChildren():
+			if id == child.get('id'): return child
 
 class RigLayer(RigNode, RigData):
 	""" This class is used to make a nicer and more readable

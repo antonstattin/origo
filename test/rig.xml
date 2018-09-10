@@ -1,5 +1,6 @@
-<MRigRoot regdata="{'pre': {}, 'post': {}, 'build': {}}" name="MRigRoot" class="MRigRoot" outputs="{}" inputs="{}" projectpath="/jack/shared/PERSONAL/astattin/origo/test/" module="origo.builders.roots.maya.mrigroot" id="ecd29eb1" projectname="asset" bstage="0">
- <model_layer color="(190, 190, 190)" regdata="{'pre': {}, 'post': {}, 'build': {}}" name="model_layer" class="RigLayer" outputs="{}" icon=":/layer.png" inputs="{}" module="origo.base.rigdata" id="325ad2c7" bstage="0">
-  <ImportModel color="(140, 140, 140)" regdata="{'pre': {}, 'post': {}, 'build': {}}" name="ImportModel" class="MAssetImport" outputs="{}" icon=":/code.png" inputs="{}" module="origo.builders.components.maya.util.massetimport" assetpath="asd" id="36c5d58d" bstage="0"/>
- </model_layer>
-</MRigRoot>
+<RigRoot class="RigRoot" inputs="{}" id="1df7efce" projectname="testproject" name="RigRoot" module="origo.base.rigdata" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="3" enabled="1" outputs="{}" projectpath="D:/project/origo/test/">
+ <prp_testproject inputs="{}" icon=":/code.png" id="8ac768b8" regdata="{'pre': {}, 'post': {}, 'build': {}}" Skeleton="1" Rig="1" Geo="1" name="prp_testproject" suffix="GRP" bstage="3" enabled="1" outputs="{}" color="(140, 140, 140)" Guide="1" extra="" Mod="1" module="origo.builders.components.maya.standards.mrigstructure" class="MRigStructure"/>
+ <asset_layer icon=":/layer.png" class="RigLayer" inputs="{}" id="321380c0" name="asset_layer" color="(190, 190, 190)" module="origo.base.rigdata" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="0" enabled="1" outputs="{}">
+  <import_model icon=":/code.png" assetpath="C:/Users/Anton/Desktop/tower.fbx" parentmodel="1" class="MAssetImport" inputs="{}" id="c4ef0d9b" name="import_model" color="(140, 140, 140)" module="origo.builders.components.maya.util.massetimport" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="3" enabled="1" outputs="{}"/>
+ </asset_layer>
+</RigRoot>
