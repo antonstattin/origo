@@ -8,11 +8,23 @@ class RigModel(QtCore.QAbstractItemModel):
 	sortRole   = QtCore.Qt.UserRole
 	filterRole = QtCore.Qt.UserRole + 1
 
-	def __init__(self, root, parent=None):
+	def __init__(self, parent=None):
 		super(RigModel, self).__init__(parent)
 
 		# root object
+		self._root = None
+
+	def setRoot(self, root):
 		self._root = root
+
+	def addRigNode(self, node, index=None):
+		""" add node to rigmodel """
+
+		if index: parent = self.getRigNode(index)
+		else: parent = self._root
+
+		node(parent)
+		self.layoutChanged.emit()
 
 	def data(self, index, role):
 		""" return data to view """
@@ -193,6 +205,17 @@ class RigModel(QtCore.QAbstractItemModel):
 class RigProxyModel(QtCore.QSortFilterProxyModel):
 	''' Recursive sort proxy
 	'''
+
+	def __init__(self, parent=None):
+		super(RigProxyModel, self).__init__(parent)
+
+		self.setDynamicSortFilter(True)
+		self.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+		self.setSortRole(RigModel.sortRole)
+		self.setFilterRole(RigModel.filterRole)
+		self.setFilterKeyColumn(0)
+
 
 	def filterAcceptsRow(self, row_num, source_parent):
 		''' Overriding the parent function '''

@@ -11,7 +11,6 @@ class RigTreeView(QtWidgets.QTreeView):
     def __init__(self, parent=None):
         super(RigTreeView, self).__init__(parent)
 
-
     def keyPressEvent(self, e):
         super(RigTreeView, self).keyPressEvent(e)
 

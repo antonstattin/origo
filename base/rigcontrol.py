@@ -9,23 +9,17 @@ import xml.etree.ElementTree as ET
 
 class RigControl(object):
 
-	def __init__(self):
-		self._root = rigdata.RigRoot('chips', '/')
-		layer = rigdata.RigLayer(self._root)
-		component = rigdata.RigComponent(layer)
-		component = rigdata.RigComponent(self._root)
-		component = rigdata.RigComponent(self._root)
-		component.set('name', 'lol')
-		component.set('bstage', 2)
+	def __init__(self, root=None):
+		self._root = root
 
 	def getData(self):
 		return self._root
 
-	def dataChanged(self):
-		print 'changed', self.rigToXml()
-
 	def rigToXml(self):
 		""" serialize rig into xml """
+
+		if not self._root: return ''
+
 		doc = QtXml.QDomDocument()
 
 		# add root node and attributes to doc
@@ -49,7 +43,7 @@ class RigControl(object):
 		for childobj in self._root.getChildren():
 			self._rigToXmlRecursive(doc, rootNode, childobj)
 
-		return doc.toString(indent=8)
+		return doc.toString(indent=4)
 
 	def _rigToXmlRecursive(self, doc, parent, rigobj):
 

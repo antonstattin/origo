@@ -168,7 +168,7 @@ class RigData(object):
 		if type(data) != list: data = [data]
 		self._dataDict['regdata'][currentStage][dType].extend(data)
 
-	def add(self, key, value, meta={}):
+	def add(self, key, value, **kwarg):
 		""" add a new attribute
 
 			:param key: key of new attribute
@@ -180,7 +180,10 @@ class RigData(object):
 			:param meta: extra meta data
 			:type meta: dict
 		"""
-		self._dataDict[key] = {'value':value, 'meta':meta}
+
+		# add a default public attribute if none
+		if not kwarg.has_key('public'): kwarg.update({'public':False})
+		self._dataDict[key] = {'value':value, 'meta':kwarg}
 
 	def set(self, key, value):
 		""" Set attribute
@@ -215,6 +218,12 @@ class RigData(object):
 	def getAttributes(self):
 		""":return: returns a list of tuples, keys and values"""
 		return [(key, d['value']) for key, d in self._dataDict.items()]
+
+	def getPublicAttributes(self):
+		publicfilter = filter(lambda items: items[1]['meta']['public'],
+							  self._dataDict.items())
+
+		return [(key, data) for key, d in publicfilter]
 
 	def getController(self):
 		""":return: returns the current rig controller"""

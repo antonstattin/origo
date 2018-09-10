@@ -1,3 +1,11 @@
 #OrigoUI{
-  background: rgb(0,0,0);
+  background: rgb(40, 40, 40);
+}
+
+#RigProperties{
+  background: rgb(45, 45, 45);
+}
+
+#console{
+  background: rgb(29, 31, 33);
 }
