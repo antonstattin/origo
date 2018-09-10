@@ -17,6 +17,9 @@ class RigModel(QtCore.QAbstractItemModel):
 	def setRoot(self, root):
 		self._root = root
 
+		self.dataChanged.emit(0, 0)
+		self.layoutChanged.emit()
+
 	def addRigNode(self, node, index=None):
 		""" add node to rigmodel """
 
@@ -215,6 +218,16 @@ class RigProxyModel(QtCore.QSortFilterProxyModel):
 		self.setSortRole(RigModel.sortRole)
 		self.setFilterRole(RigModel.filterRole)
 		self.setFilterKeyColumn(0)
+
+	def setRoot(self, root):
+		""" set root """
+		model = self.sourceModel()
+		model._root = root
+
+		self.dataChanged.emit(0, 0)
+		self.layoutChanged.emit()
+		model.dataChanged.emit(0, 0)
+		model.layoutChanged.emit()
 
 
 	def filterAcceptsRow(self, row_num, source_parent):

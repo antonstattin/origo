@@ -2,7 +2,7 @@
 try: from SHARED.Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
-import oirgo.uiutils.widgets.newprojectdialog as newprojdialog
+import origo.uiutils.widgets.newprojectdialog as newprojdialog
 
 class MainWindowSignals(object):
 
@@ -15,10 +15,16 @@ class MainWindowSignals(object):
         self._rigmodel.dataChanged.connect(self.updateRigXmlWindow)
 
         # Menu Actions
+        self._fileNewAction.triggered.connect(self._fileNewFnc)
+        self._fileSaveAction.triggered.connect(self._saveNewFnc)
+
         self._winOpenCPWinAction.triggered.connect(self._winOpenCPWin)
         self._winOpenXmlWinAction.triggered.connect(self._winOpenXmlWin)
 
-    def _fileNewAction(self):
+    def _saveNewFnc(self):
+        self._rigcontrol.saveRigxXml()
+
+    def _fileNewFnc(self):
         new_project =  newprojdialog.NewProjectDialog(self)
         new_project.show()
 

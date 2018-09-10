@@ -62,7 +62,6 @@ class XMLHighlighter(QtGui.QSyntaxHighlighter):
                 #Set index to where the expression ends in the text
                 index = expression.indexIn(text, index + length)
 
-        #HANDLE QUOTATION MARKS NOW.. WE WANT TO START WITH " AND END WITH ".. A THIRD " SHOULD NOT CAUSE THE WORDS INBETWEEN SECOND AND THIRD TO BE COLORED
         self.setCurrentBlockState(0)
 
         startIndex = 0

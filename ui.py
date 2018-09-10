@@ -13,25 +13,16 @@ from uiutils import icons
 from base import rigcontrol, rigmodel
 
 import uiutils.signals.mainwindowsignals as signals
-from uiutils.widgets import rigtreeview, rigproperties, rigxml
-
-reload(rigproperties)
-reload(rigtreeview)
-reload(signals)
-reload(rigmodel)
+from uiutils.widgets import rigtreeview, rigproperties, rigxml, newprojectdialog
+#reload(rigxml)
+#reload(signals)
 reload(rigcontrol)
-reload(rigxml)
+reload(rigproperties)
 
 # setup logger
 logger = logging.getLogger("Origo")
 
-def inMaya(debug=logging.INFO):
-    """ opens the ui in maya with the standard maya pointer proc"""
-
-    logger.setLevel(debug)
-
-    # prevent duplicate windows in maya
-    _MA_SINGELTON_WIN_OBJ_NAME = "OrigoUI"
+def inMaya(debug=logging.INFO, root=None):
 
     # import maya modules
     import maya.OpenMayaUI as omui
@@ -41,14 +32,31 @@ def inMaya(debug=logging.INFO):
     mwptr = omui.MQtUtil.mainWindow()
     mayawindow = wrapInstance(long(mwptr), QtWidgets.QWidget)
 
-    if (cmds.window(_MA_SINGELTON_WIN_OBJ_NAME, exists=True)):
-        cmds.deleteUI(_MA_SINGELTON_WIN_OBJ_NAME)
 
-    win = UI(mayawindow)
-    win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
+    def _inMaya(debug, root):
+        """ opens the ui in maya with the standard maya pointer proc"""
+
+        logger.setLevel(debug)
+
+        # prevent duplicate windows in maya
+        _MA_SINGELTON_WIN_OBJ_NAME = "OrigoUI"
+
+        if (cmds.window(_MA_SINGELTON_WIN_OBJ_NAME, exists=True)):
+            cmds.deleteUI(_MA_SINGELTON_WIN_OBJ_NAME)
+
+        win = UI(root, mayawindow)
+        win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
+        win.show()
+
+        return win
+
+    if root: return _inMaya(debug, root)
+
+    win = newprojectdialog.NewProjectDialog(debug, mayawindow)
+    win.accept.connect(_inMaya)
     win.show()
 
-    return win
+
 
 class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
@@ -56,20 +64,22 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         QtWidgets.QMainWindow.__init__(self, parent)
         logger.debug("UI.__init__")
 
+        self.setWindowTitle('Origo')
+
         self._QSettings =  QtCore.QSettings("Origo", "origo_ui")
         self._qssFile = os.path.join(os.path.dirname(__file__),
                                      "uiutils/style/default.qss")
 
-        self._rigcontrol = rigcontrol.RigControl()
+
         self._rigmodel = rigmodel.RigModel()
         self._proxyModel = rigmodel.RigProxyModel(self)
+        self._proxyModel.setSourceModel(self._rigmodel)
+
+        self._rigcontrol = rigcontrol.RigControl(root, self._proxyModel)
 
         # build ui
         self._buildUI()
         self._buildMenuBar()
-
-        # setup proxy model
-        self._proxyModel.setSourceModel(self._rigmodel)
 
         # set model
         self.treeview.setModel(self._proxyModel)

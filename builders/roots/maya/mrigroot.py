@@ -1,9 +1,11 @@
 
+import origo.base.rigdata as rigdata
+reload(rigdata)
 import maya.cmds as cmds
 
 class MRigRoot(rigdata.RigRoot):
 
-    def __init__(self, rigcontrol, projectname,
+    def __init__(self, projectname,
                  projectpath, parent=None):
         """ the root node of the rig hierarchy
 
@@ -17,10 +19,7 @@ class MRigRoot(rigdata.RigRoot):
             :type projectpath:
 
         """
-
-        super(MRigRoot, self).__init__(rigcontrol, projectname,
-                                        projectpath, parent)
-
+        super(MRigRoot, self).__init__(projectname, projectpath, parent)
 
     def pre(self):
         """ Root .pre creates the group structure of the rig
@@ -41,7 +40,7 @@ class MRigRoot(rigdata.RigRoot):
             If some groups are not used and feel redundant
             they can be deleted with a simple script-component..
         """
-        RigBuilder.pre(self)
+        super(MRigRoot, self).pre()
 
         projname = self.get('projectname')
 
@@ -52,7 +51,7 @@ class MRigRoot(rigdata.RigRoot):
         # create 'global' groups
         main = makeGroup('%s_GRP'%projname)
         rig = makeGroup('%s_RIG_GRP'%projname)
-        components = makeGroup('%s_COMPONENTS_GRP'%projname)
+        components = makeGroup('%s_MOD_GRP'%projname)
         skeleton = makeGroup('%s_SKELETON_GRP'%projname)
         geo = makeGroup('%s_GEO_GRP'%projname)
         guide = makeGroup('%s_GUIDE_GRP'%projname)
@@ -60,7 +59,7 @@ class MRigRoot(rigdata.RigRoot):
         # parent groups, (child, parent)
         parentGroup(rig, main)
         parentGroup(geo, main)
-        parentGroup(components, main)
+        parentGroup(components, rig)
         parentGroup(guide, rig)
         parentGroup(skeleton, rig)
 
@@ -72,4 +71,4 @@ class MRigRoot(rigdata.RigRoot):
 
         for node in [main, rig, components, skeleton, geo, guide]:
             for attr in attribs:
-                cmds.setAttr("%s.%s"%(node, attr), cb=False, k=False, lock=True)
+                cmds.setAttr("%s%s"%(node, attr), cb=False, k=False, lock=True)

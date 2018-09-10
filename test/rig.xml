@@ -1,0 +1,5 @@
+<MRigRoot regdata="{'pre': {}, 'post': {}, 'build': {}}" name="MRigRoot" class="MRigRoot" outputs="{}" inputs="{}" projectpath="/jack/shared/PERSONAL/astattin/origo/test/" module="origo.builders.roots.maya.mrigroot" id="ecd29eb1" projectname="asset" bstage="0">
+ <model_layer color="(190, 190, 190)" regdata="{'pre': {}, 'post': {}, 'build': {}}" name="model_layer" class="RigLayer" outputs="{}" icon=":/layer.png" inputs="{}" module="origo.base.rigdata" id="325ad2c7" bstage="0">
+  <ImportModel color="(140, 140, 140)" regdata="{'pre': {}, 'post': {}, 'build': {}}" name="ImportModel" class="MAssetImport" outputs="{}" icon=":/code.png" inputs="{}" module="origo.builders.components.maya.util.massetimport" assetpath="asd" id="36c5d58d" bstage="0"/>
+ </model_layer>
+</MRigRoot>

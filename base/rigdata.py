@@ -40,14 +40,13 @@ class RigBuilder(object):
 		   :param msg: message to log
 		   :type msg: str
 		"""
-		logger.info('{} : {}'.format(__class__, msg))
+		logger.info('{} : {}'.format(self.__class__.__name__, msg))
 
 
 class RigNode(object):
 	"""Keeps track of children and parents"""
 
 	def __init__(self, parent=None):
-
 		self._children = []
 		self._parent = parent
 
@@ -102,7 +101,8 @@ class RigNode(object):
 
 	def __iter__(self):
 		""" iterate over all nodes under self """
-		for child in _getRecursiveChildren():
+
+		for child in self._getRecursiveChildren():
 			yield child
 
 # ------------------- private methods ------------------------ #
@@ -110,13 +110,15 @@ class RigNode(object):
 	def _getRecursiveChildren(self):
 		""" Private function that returns all nodes under self """
 
+
 		def _recursiveChildren(child, _childlist):
-			for child in child._children():
-				childlist.append(child)
-				_recursiveChildren(child, childlist)
+			for child in child._children:
+				_childlist.append(child)
+				_recursiveChildren(child, _childlist)
 
 		_childlist = []
 		for child in self._children:
+			_childlist.append(child)
 			_recursiveChildren(child, _childlist)
 
 		return _childlist
@@ -127,7 +129,6 @@ class RigData(object):
 	"""Keeps track of all rig component data"""
 
 	def __init__(self):
-		super(RigData, self).__init__()
 
 		self._dataDict = OrderedDict()
 
@@ -199,7 +200,19 @@ class RigData(object):
 		if key in keys: self._setData(keys.index(key), value)
 		else: logger.debug("Can't find key: {} in data".format(key))
 
+	def getKeyIndex(self, key):
+		""" returns the index of the key, this is usefull for the models
+		    and the model mappers.
 
+			:param key: key name
+			:type key: str
+
+			:return: returns index of key if found else returns none
+		"""
+		keys = self._dataDict.keys()
+		if key in keys: return keys.index(key)
+
+		return None
 
 	def get(self, key):
 		""" returns value from data
@@ -223,7 +236,7 @@ class RigData(object):
 		publicfilter = filter(lambda items: items[1]['meta']['public'],
 							  self._dataDict.items())
 
-		return [(key, data) for key, d in publicfilter]
+		return [(key, data) for key, data in publicfilter]
 
 	def getController(self):
 		""":return: returns the current rig controller"""
@@ -232,6 +245,7 @@ class RigData(object):
 
 	def _data(self, column):
 		""" return data to model """
+
 		key = self._dataDict.keys()[column]
 		return self._dataDict[key]['value']
 
@@ -278,7 +292,7 @@ class RigComponent(RigNode, RigData, RigBuilder):
 			:param msg: message to log
 			:type msg: str
 		"""
-		RigBuilder.log('%s - %s'%(self.get('name'), msg))
+		RigBuilder.log(self, '%s - %s'%(self.get('name'), msg))
 
 
 class RigRoot(RigNode, RigData, RigBuilder):
@@ -314,6 +328,7 @@ class RigLayer(RigNode, RigData):
 	def __init__(self, parent=None):
 		RigNode.__init__(self, parent)
 		RigData.__init__(self)
+		RigBuilder.__init__(self)
 
 		self._type = RigObjectType.Layer
 
