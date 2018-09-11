@@ -1,6 +1,6 @@
-<RigRoot class="RigRoot" inputs="{}" id="1df7efce" projectname="testproject" name="RigRoot" module="origo.base.rigdata" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="3" enabled="1" outputs="{}" projectpath="D:/project/origo/test/">
- <prp_testproject inputs="{}" icon=":/code.png" id="8ac768b8" regdata="{'pre': {}, 'post': {}, 'build': {}}" Skeleton="1" Rig="1" Geo="1" name="prp_testproject" suffix="GRP" bstage="3" enabled="1" outputs="{}" color="(140, 140, 140)" Guide="1" extra="" Mod="1" module="origo.builders.components.maya.standards.mrigstructure" class="MRigStructure"/>
- <asset_layer icon=":/layer.png" class="RigLayer" inputs="{}" id="321380c0" name="asset_layer" color="(190, 190, 190)" module="origo.base.rigdata" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="0" enabled="1" outputs="{}">
-  <import_model icon=":/code.png" assetpath="C:/Users/Anton/Desktop/tower.fbx" parentmodel="1" class="MAssetImport" inputs="{}" id="c4ef0d9b" name="import_model" color="(140, 140, 140)" module="origo.builders.components.maya.util.massetimport" regdata="{'pre': {}, 'post': {}, 'build': {}}" bstage="3" enabled="1" outputs="{}"/>
- </asset_layer>
+<RigRoot class="RigRoot" inputs="{}" enabled="1" module="origo.base.rigdata" bstage="3" regdata="{'pre': {}, 'post': {}, 'build': {}}" id="8e81a1f5" projectname="unamed" outputs="{}" projectpath="/" name="RigRoot">
+ <RigLayer class="RigLayer" inputs="{}" enabled="1" module="origo.base.rigdata" bstage="0" regdata="{'pre': {}, 'post': {}, 'build': {}}" color="(190, 190, 190)" id="a9ec95d7" outputs="{}" icon=":/layer.png" name="RigLayer">
+  <MAssetImport class="MAssetImport" inputs="{}" enabled="1" module="origo.builders.components.maya.util.massetimport" parentmodel="1" bstage="3" regdata="{'pre': {}, 'post': {}, 'build': {}}" assetpath="" color="(140, 140, 140)" id="b656316b" outputs="{}" icon=":/code.png" name="MAssetImport"/>
+  <MRigStructure Rig="1" color="(140, 140, 140)" id="cc47268f" Skeleton="1" outputs="{}" module="origo.builders.components.maya.standards.mrigstructure" Geo="1" icon=":/code.png" inputs="{}" extra="" Guide="1" Mod="1" bstage="3" suffix="GRP" name="MRigStructure" enabled="1" regdata="{'pre': {}, 'post': {}, 'build': {}}" class="MRigStructure"/>
+ </RigLayer>
 </RigRoot>

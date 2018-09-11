@@ -265,12 +265,43 @@ class RigData(object):
 		key = self._dataDict.keys()[column]
 		self._dataDict[key]['value'] = value
 
-# ------------------- Enum Classes ------------------------ #
+# ------------------- Enum and Util Classes ------------------------ #
 class RigObjectType():
 	""" enum class for rig object types """
 	Root = 0
 	Layer = 1
 	Component = 2
+
+
+class RootBuildFunction(object):
+	""" this class by the root, override it to create other
+		special functions for the specific app """
+	def __init__(self, stage, component):
+
+		self._stage = stage
+		self._component = component
+
+	@property
+	def stage():
+		return self._stage
+	@stage.setter
+	def stage(self, val): return
+
+	@property
+	def component():
+		return self._component
+	@stage.setter
+	def component(self, val): return
+
+	def __enter__(self):
+		""" use this to run a function
+			before method before stage is run """
+		return self._stage
+
+	def __exit__(self, *args):
+		""" use this to run a function after
+		 	methods build stage has run"""
+		return True
 
 
 # --------------------------------------------------------- #
@@ -288,6 +319,7 @@ class RigComponent(RigNode, RigData, RigBuilder):
 
 		self._type = RigObjectType.Component
 
+
 		# create attributes
 		self.add('icon', ':/code.png')
 		self.add('color', (140, 140, 140))
@@ -299,6 +331,7 @@ class RigComponent(RigNode, RigData, RigBuilder):
 			:type msg: str
 		"""
 		RigBuilder.log(self, '%s - %s'%(self.get('name'), msg))
+
 
 
 class RigRoot(RigNode, RigData, RigBuilder):
@@ -322,6 +355,8 @@ class RigRoot(RigNode, RigData, RigBuilder):
 
 		self._type = RigObjectType.Root
 
+		self._builder = RootBuildFunction
+
 		# create attributes
 		self.add('projectname', projectname)
 		self.add('projectpath', projectpath)
@@ -329,6 +364,10 @@ class RigRoot(RigNode, RigData, RigBuilder):
 	def findChild(self, id):
 		for child in self._getRecursiveChildren():
 			if id == child.get('id'): return child
+
+	def importData(self, stage=None, component=None):
+		""" override this as an data import function """
+		return
 
 class RigLayer(RigNode, RigData):
 	""" This class is used to make a nicer and more readable

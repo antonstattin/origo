@@ -13,9 +13,10 @@ from uiutils import icons
 from base import rigcontrol, rigmodel, rigdata
 
 import uiutils.signals.mainwindowsignals as signals
-from uiutils.docks import rigtreeview, rigproperties, rigxml
+from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj
 from uiutils.dialogs import newprojectdialog
 reload(signals)
+reload(rigmodel)
 
 
 # setup logger
@@ -65,7 +66,9 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         # build ui
         self._buildUI()
+        self._buildToolBar()
         self._buildMenuBar()
+
 
         # set model
         self.treeview.setModel(self._proxyModel)
@@ -91,10 +94,12 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
     def _buildMenuBar(self):
 
         # File menu
-        self.fileMenu = QtWidgets.QMenu('&File', self)
-        self._fileNewAction = QtWidgets.QAction("&New", self)
-        self._fileOpenAction = QtWidgets.QAction("&Open Project", self)
-        self._fileSaveAction = QtWidgets.QAction("&Save Project", self)
+        self.fileMenu = QtWidgets.QMenu('File', self)
+        self._fileNewAction = QtWidgets.QAction("New", self)
+        self._fileOpenAction = QtWidgets.QAction("Open Project", self)
+
+        saveicon = QtGui.QPixmap(':/saveproj.png')
+        self._fileSaveAction = QtWidgets.QAction(saveicon, "Save Project", self)
 
         self.fileMenu.addAction(self._fileNewAction)
         self.fileMenu.addAction(self._fileOpenAction)
@@ -107,16 +112,39 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self.winMenu = QtWidgets.QMenu('&Window', self)
 
         # open properties window
-        self._winOpenCPWinAction = QtWidgets.QAction("Component Properties", self)
-        self._winOpenCPWinAction.setStatusTip("Open Component Properties window")
+        self._winOpenCPWinAction = QtWidgets.QAction("Show Component Properties", self)
+        self._winOpenCPWinAction.setStatusTip("Show Component Properties window")
 
-        self._winOpenXmlWinAction = QtWidgets.QAction("Rig As Xml", self)
-        self._winOpenXmlWinAction.setStatusTip("Open Rig as xml window")
+        self._winOpenXmlWinAction = QtWidgets.QAction("Show RigAsXml", self)
+        self._winOpenXmlWinAction.setStatusTip("Show Rig as xml window")
+
+        self._winOpenBuildShelfAction = QtWidgets.QAction("Show Build-Shelf", self)
 
         self.winMenu.addAction(self._winOpenCPWinAction)
         self.winMenu.addAction(self._winOpenXmlWinAction)
+        self.winMenu.addAction(self._winOpenBuildShelfAction)
         self.menuBar().addMenu(self.winMenu)
 
+    def _buildToolBar(self):
+
+        self.buildShelf = QtWidgets.QToolBar()
+
+        reverticon = QtGui.QPixmap(':/backblue.png')
+        self._revertAction = self.buildShelf.addAction(QtGui.QIcon(reverticon), '')
+
+        buildicon = QtGui.QPixmap(':/forwardblue.png')
+        self._buildAction = self.buildShelf.addAction(QtGui.QIcon(buildicon), '')
+
+        buildallicon = QtGui.QPixmap(':/buildrigblue.png')
+        self._buildAllAction = self.buildShelf.addAction(QtGui.QIcon(buildallicon), '')
+
+        self.buildShelf.addSeparator()
+
+        publishIcon = QtGui.QPixmap(':/package.png')
+        self._publishAction = self.buildShelf.addAction(QtGui.QIcon(publishIcon), 'Publish')
+
+
+        self.addToolBar(self.buildShelf)
 
     def _buildUI(self):
         """ create all the uis widgets """
@@ -144,12 +172,28 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self.rigProperties = rigproperties.RigPropertiesPanel(self._rigmodel)
         self.rigPropertiesDock.setWidget(self.rigProperties)
 
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.rigPropertiesDock)
+
+        # new project dock
+        self.rigEditProjDock = QtWidgets.QDockWidget('Edit Project')
+        self.rigEditProjDock.setObjectName('RigEditProj')
+        self.rigEditProj = rigeditproj.RigEditProj()
+        self.rigEditProjDock.setWidget(self.rigEditProj)
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
+                            self.rigEditProjDock)
+
+        # if project already set we don't need show project settings..
+        if self._rigcontrol._root.get('projectpath') != '/':
+            self.rigEditProjDock.setVisible(False)
+        else: self.rigEditProjDock.setVisible(True)
+
 
         # setup xml view
         self.rigXmlDock = QtWidgets.QDockWidget('Rig As XML', self)
         self.rigXmlDock.setObjectName('RigAsXML')
+        self.rigXmlDock.setVisible(False)
 
         self.rigasXml = rigxml.RigXmlPanel()
         self.rigasXml.updateXml(self._rigcontrol.rigToXml())

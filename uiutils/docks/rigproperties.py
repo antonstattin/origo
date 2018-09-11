@@ -65,11 +65,13 @@ class RigPropertiesPanel(QtWidgets.QWidget):
             :type index: QIndexModel
 
         """
+        self._clearLayout()
+
+        if node == None: return
+
         # set current Model Index
         self._dataMapper.setRootIndex(index.parent())
         self._dataMapper.setCurrentModelIndex(index)
-
-        self._clearLayout()
 
         # ---- create the main frame ---- #
 
@@ -95,6 +97,7 @@ class RigPropertiesPanel(QtWidgets.QWidget):
 
         scriptbttn = QtWidgets.QPushButton()
         scriptbttn.setIcon(QtGui.QIcon(QtGui.QPixmap(':/python.png')))
+
         scriptbttn.clicked.connect(partial(self._openScript, node.__module__))
 
         nameedit = QtWidgets.QLineEdit()

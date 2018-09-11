@@ -28,7 +28,7 @@ class RigControl(object):
 
 		self._model
 
-	def addNewComponent(self, component, parent=None):
+	def addComponent(self, component, parent=None):
 
 		if not parent: parent = self._root
 
@@ -62,28 +62,44 @@ class RigControl(object):
 		# reset all modules
 		for mod in allModules: mod.set('bstage', 0)
 
-		for mod in allModules:
-			if mod._type == 1: continue # if layer
-
-			mod.pre()
-			mod.set('bstage', 1)
-
-			self.updateSourceModel()
-
-		for mod in allModules:
-			if mod._type == 1: continue # if layer
-			mod.build()
-			mod.set('bstage', 2)
-
-			self.updateSourceModel()
 
 
 		for mod in allModules:
 			if mod._type == 1: continue # if layer
-			mod.post()
-			mod.set('bstage', 3)
 
-			self.updateSourceModel()
+			with self._root._builder(1, mod):
+				mod.set('bstage', 1)
+				mod.pre()
+				self.updateSourceModel()
+
+		for mod in allModules:
+			self._root.importData(1, mod)
+
+		for mod in allModules:
+			if mod._type == 1: continue # if layer
+
+			with self._root._builder(2, mod):
+				mod.set('bstage', 2)
+				mod.build()
+
+				self.updateSourceModel()
+
+		for mod in allModules:
+			self._root.importData(2, mod)
+
+		for mod in allModules:
+			if mod._type == 1: continue # if layer
+
+			with self._root._builder(3, mod):
+
+				mod.set('bstage', 3)
+				mod.post()
+
+				self.updateSourceModel()
+
+		for mod in allModules:
+			self._root.importData(3, mod)
+
 
 	def rigToXml(self):
 		""" serialize rig into xml """

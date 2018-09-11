@@ -6,6 +6,23 @@
   background: rgb(45, 45, 45);
 }
 
+#RigEditProj{
+  background: rgb(45, 45, 45);
+}
+
 #console{
   background: rgb(29, 31, 33);
+}
+
+#default-round{
+  background-color: rgb(35, 35, 35);
+  border: 2px solid rgb(65, 65, 65);
+  border-radius: 15px;
+}
+
+#submit-button{
+  background-color: rgb(211, 127, 63);
+  color: rgb(25,25,25);
+  font-size: 13px;
+  font-weight: bold;
 }

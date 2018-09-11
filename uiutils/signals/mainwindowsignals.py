@@ -20,6 +20,8 @@ class MainWindowSignals(object):
         # WINDOW
         self._winOpenCPWinAction.triggered.connect(self._winOpenCPWin)
         self._winOpenXmlWinAction.triggered.connect(self._winOpenXmlWin)
+        self._winOpenBuildShelfAction.triggered.connect(self._winBuildShelfFnc)
+
 
 
         ## UPDATE METHODS ##
@@ -39,7 +41,10 @@ class MainWindowSignals(object):
 
     def _fileNewFnc(self):
         self._rigcontrol.setRoot(rigdata.RigRoot('newproject', '/'))
+        self.rigEditProjDock.setVisible(True)
+        self.rigProperties._clearLayout()
         self.updateTitle()
+
 
 # -------------------  WINDOW  ------------------------ #
 
@@ -53,6 +58,10 @@ class MainWindowSignals(object):
         if self.rigPropertiesDock.isVisible(): return
         self.rigPropertiesDock.setVisible(True)
 
+
+    def _winBuildShelfFnc(self):
+        if self.buildShelf.isVisible(): return
+        self.buildShelf.setVisible(True)
 
 
 # ------------------------------------------------------------- #

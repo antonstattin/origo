@@ -84,21 +84,22 @@ class RigModel(QtCore.QAbstractItemModel):
 
 	def supportedDropActions(self):
 		""" return suppoerted drop action """
-		return QtCore.Qt.MoveAction | QtCore.Qt.CopyAction
+		return QtCore.Qt.MoveAction
 
 	def flags(self, index):
 		""" set item flags """
+		if not index.isValid():
+			return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled
 
-		if index.column() == 0:
+		# get rigNode
+		rigNode = index.internalPointer()
+
+		if rigNode._type:
 			return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled | \
 				   QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsSelectable | \
 				   QtCore.Qt.ItemIsEditable
-		else:
-			#return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled
 
-			return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled |\
-					QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-
+		return QtCore.Qt.ItemIsDropEnabled
 
 	def headerData(self, col, orientation, role):
 		""" return the header data to view """
@@ -118,8 +119,7 @@ class RigModel(QtCore.QAbstractItemModel):
 			parentRigNode = self._root
 		else:
 			parentRigNode = parent.internalPointer()
-
-		return len(parentRigNode._children)
+		return len(parentRigNode.getChildren())
 
 	def columnCount(self, parent):
 		""" return the number of columns """
@@ -132,13 +132,16 @@ class RigModel(QtCore.QAbstractItemModel):
 	def insertRows(self, row, count, parentIndex):
 		self.beginInsertRows(parentIndex, row, row+count-1)
 		self.endInsertRows()
+		self.dataChanged.emit( parentIndex, parentIndex )
 		return True
 
 	def removeRows(self, row, count, parentIndex):
+
 		self.beginRemoveRows(parentIndex, row, row+count-1)
 		parent =  self.getRigNode(parentIndex)
 		parent.removeChild(row)
 		self.endRemoveRows()
+
 		self.dataChanged.emit( parentIndex, parentIndex )
 		return True
 
@@ -162,6 +165,8 @@ class RigModel(QtCore.QAbstractItemModel):
 		if not mimedata.hasFormat( 'application/x-pyobj' ): return False
 
 		item = cPickle.loads( str( mimedata.data( 'application/x-pyobj' ) ) )
+		print item
+
 		dropParent = self.getRigNode( parentIndex )
 		dropParent.addChild( item )
 		self.insertRows( len(dropParent.getChildren())-1, 1, parentIndex )
