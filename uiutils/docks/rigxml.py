@@ -2,6 +2,14 @@ try: from SHARED.Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 class XMLHighlighter(QtGui.QSyntaxHighlighter):
+    """ Highlighter, a forked function from some tutorial, altered
+        some colors etc.
+
+        Highlights the xml text in a QPlainEdit
+
+        TODO:
+            * make it smarter, fix path colors
+    """
 
     #INIT THE STUFF
     def __init__(self, parent=None):
@@ -83,6 +91,7 @@ class XMLHighlighter(QtGui.QSyntaxHighlighter):
 
 
 class RigXmlPanel(QtWidgets.QWidget):
+    """This Panel is the main widget in RigXmlDock """
 
     def __init__(self, parent=None):
         super(RigXmlPanel, self).__init__(parent)

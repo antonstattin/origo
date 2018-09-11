@@ -4,7 +4,13 @@ try: from Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 class AbstractPropertyWidget(QtWidgets.QWidget):
-    """ Abstract property widget """
+    """ Abstract property widget
+
+        Override getValue and the property 'valueProperty'
+        valueProperty = QtCore.Property(bool, getValue, setValue)
+
+        This module is the base class for all the Property widgets
+    """
 
     doSubmit = QtCore.Signal()
 
@@ -14,17 +20,25 @@ class AbstractPropertyWidget(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QHBoxLayout())
         self.setContentsMargins(2, 2, 2 ,2)
 
-    def setValue(self, value):
-        raise NotImplementedError('abstract method! ' \
-                                  'Needs to override .setValue')
+    def setValue(self, value): return
+
     def getValue(self):
+        """ returns the value to the modelmapper"""
+
         raise NotImplementedError('abstract method! ' \
                                   'Needs to override .getValue')
-    def widget(self):
-        raise NotImplementedError('abstract method! '\
-                                  'Needs to override .widget')
+
+    def widget(self): return None
+
+
+
+
+# ------------------- DEFAULT PROPERTYWIDGETS ------------------------ #
+
+
 
 class RigCheckBoxProperty(AbstractPropertyWidget):
+    """ Property for attribute values of type 'bool' """
 
     def __init__(self, name, value):
         super(RigCheckBoxProperty, self).__init__()
@@ -57,7 +71,7 @@ class RigCheckBoxProperty(AbstractPropertyWidget):
 
 
 class RigLineEditProperty(AbstractPropertyWidget):
-
+    """ Property for attribute values of type 'str' """
     def __init__(self, name, value):
         super(RigLineEditProperty, self).__init__()
 
@@ -87,7 +101,14 @@ class RigLineEditProperty(AbstractPropertyWidget):
 
 
 
+
+# ------------------- SPECIAL PROPERTYWIDGETS ------------------------ #
+
+
+
+
 class RigBrowseProperty(AbstractPropertyWidget):
+    """ Special widget for browsing files """
 
     def __init__(self, name, value, **kwarg):
         super(RigBrowseProperty, self).__init__()

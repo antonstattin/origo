@@ -2,7 +2,6 @@
 import origo.builders.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
-reload(mrig)
 
 class MAssetImport(mrig.MRigComponent):
 

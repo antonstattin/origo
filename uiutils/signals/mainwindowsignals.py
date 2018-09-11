@@ -6,21 +6,33 @@ import origo.uiutils.widgets.newprojectdialog as newprojdialog
 import origo.base.rigdata as rigdata
 
 class MainWindowSignals(object):
+    """ This class contains all the signals/slots of the mainwindow
+    """
 
     def __init__(self):
 
-        self.treeviewfilterEdit.textChanged.connect(self._proxyModel.setFilterRegExp)
+# -------------------  Connections  ------------------------ #
 
-        self.treeview.selectionModel().currentChanged.connect(self.updatePropertiesWindow)
-
-        self._rigmodel.dataChanged.connect(self.updateRigXmlWindow)
-
-        # Menu Actions
+        # FILE
         self._fileNewAction.triggered.connect(self._fileNewFnc)
         self._fileSaveAction.triggered.connect(self._saveNewFnc)
 
+        # WINDOW
         self._winOpenCPWinAction.triggered.connect(self._winOpenCPWin)
         self._winOpenXmlWinAction.triggered.connect(self._winOpenXmlWin)
+
+
+        ## UPDATE METHODS ##
+        self.treeviewfilterEdit.textChanged.connect(self._proxyModel.setFilterRegExp)
+        self.treeview.selectionModel().currentChanged.connect(self.updatePropertiesWindow)
+        self._rigmodel.dataChanged.connect(self.updateRigXmlWindow)
+
+
+# ----------------------------------------------------------- #
+# -------------------  MENU  ACTIONS ------------------------ #
+# ----------------------------------------------------------- #
+
+# -------------------  FILE  ------------------------ #
 
     def _saveNewFnc(self):
         self._rigcontrol.saveRigxXml()
@@ -29,13 +41,23 @@ class MainWindowSignals(object):
         self._rigcontrol.setRoot(rigdata.RigRoot('newproject', '/'))
         self.updateTitle()
 
+# -------------------  WINDOW  ------------------------ #
+
     def _winOpenXmlWin(self):
         if self.rigXmlDock.isVisible(): return
         self.rigXmlDock.setVisible(True)
 
+        self.rigXmlDock.widget().updateXml(self._rigcontrol.rigToXml())
+
     def _winOpenCPWin(self):
         if self.rigPropertiesDock.isVisible(): return
         self.rigPropertiesDock.setVisible(True)
+
+
+
+# ------------------------------------------------------------- #
+# -------------------  UPDATE METHODS ------------------------- #
+# ------------------------------------------------------------- #
 
     def updateRigXmlWindow(self, current, old):
         if not self.rigXmlDock.isVisible(): return

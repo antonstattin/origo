@@ -10,6 +10,10 @@ logger = logging.getLogger("Origo")
 # --------------------------------------------------------- #
 
 class RigBuilder(object):
+	""" Contains all the stages in the build
+		Override pre, build, post, undo_post/-build/-pre
+		the rig will be built in the set order pre > build > post
+	"""
 
 # ------------------- Build methods ------------------------ #
 	def pre(self):
@@ -75,7 +79,7 @@ class RigNode(object):
 		child._parent = self
 
 	def removeChild(self, position):
-
+		""" removes child at position """
 		if position < 0 or position > len(self._children):
 			return False
 
@@ -86,11 +90,12 @@ class RigNode(object):
 
 
 	def getRow(self):
+		""" returns row """
 		if self._parent is not None:
 			return self._parent._children.index(self)
 
 	def insertChild(self, position, child):
-
+		""" inserts child at position """
 		if position < 0 or position > len(self._children):
 			return False
 
@@ -242,15 +247,6 @@ class RigData(object):
 							  self._dataDict.items())
 
 		return [(key, data) for key, data in publicfilter]
-
-	def setController(self, controller):
-		""" set controller """
-		self._controller = controller
-
-	def getController(self):
-		""" get controller to access other mods """
-		if self._controller: return self._controller
-		return None
 
 # ------------------- private methods ------------------------ #
 

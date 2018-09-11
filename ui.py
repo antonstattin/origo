@@ -15,14 +15,14 @@ from base import rigcontrol, rigmodel, rigdata
 import uiutils.signals.mainwindowsignals as signals
 from uiutils.docks import rigtreeview, rigproperties, rigxml
 from uiutils.dialogs import newprojectdialog
-reload(rigproperties)
-reload(rigmodel)
-reload(rigcontrol)
+reload(signals)
+
 
 # setup logger
 logger = logging.getLogger("Origo")
 
 def inMaya(debug=logging.INFO, root=None):
+    """ Open Origos UI in maya """
 
     # import maya modules
     import maya.OpenMayaUI as omui
@@ -37,11 +37,6 @@ def inMaya(debug=logging.INFO, root=None):
 
     mwptr = omui.MQtUtil.mainWindow()
     mayawindow = wrapInstance(long(mwptr), QtWidgets.QWidget)
-    """
-     <model_layer bstage="0" color="(190, 190, 190)" class="RigLayer" regdata="{'pre': {}, 'post': {}, 'build': {}}" id="325ad2c7" name="model_layer" icon=":/layer.png" module="origo.base.rigdata" outputs="{}" inputs="{}">
-      <ImportModel bstage="0" color="(140, 140, 140)" class="MAssetImport" regdata="{'pre': {}, 'post': {}, 'build': {}}" id="36c5d58d" name="ImportModel" icon=":/code.png" module="origo.builders.components.maya.util.massetimport" assetpath="C:/Users/Anton/Desktop/tower.fbx" parentmodel="1" outputs="{}" inputs="{}"/>
-     </model_layer>
-    """
 
     if not root: root = rigdata.RigRoot('unamed', '/')
 
@@ -152,7 +147,7 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
                            self.rigPropertiesDock)
 
-        # setup component properties
+        # setup xml view
         self.rigXmlDock = QtWidgets.QDockWidget('Rig As XML', self)
         self.rigXmlDock.setObjectName('RigAsXML')
 

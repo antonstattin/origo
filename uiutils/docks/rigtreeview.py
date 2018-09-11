@@ -7,11 +7,21 @@ try: from Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 class RigTreeView(QtWidgets.QTreeView):
+    """ This is the tree view displaying all the rig data and their stages
+        main purpose is just to display the model
+    """
 
     def __init__(self, parent=None):
         super(RigTreeView, self).__init__(parent)
 
     def keyPressEvent(self, e):
+        """
+            Delete-key : will remove selected rignode
+
+
+            :param e: event
+            :type e: QEvent
+        """
         super(RigTreeView, self).keyPressEvent(e)
 
         # Delete item(s)
