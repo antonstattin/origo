@@ -15,8 +15,10 @@ class RigModel(QtCore.QAbstractItemModel):
 		self._root = None
 
 	def setRoot(self, root):
-		self._root = root
 
+		#self.modelReset.emit()
+		self.layoutAboutToBeChanged.emit()
+		self._root = root
 		self.dataChanged.emit(0, 0)
 		self.layoutChanged.emit()
 
@@ -162,15 +164,15 @@ class RigModel(QtCore.QAbstractItemModel):
 	def dropMimeData(self, mimedata, action, row, column, parentIndex):
 		""" emit drop mime data """
 
+		self.layoutAboutToBeChanged.emit()
 		if not mimedata.hasFormat( 'application/x-pyobj' ): return False
 
 		item = cPickle.loads( str( mimedata.data( 'application/x-pyobj' ) ) )
-		print item
-
 		dropParent = self.getRigNode( parentIndex )
 		dropParent.addChild( item )
 		self.insertRows( len(dropParent.getChildren())-1, 1, parentIndex )
 		self.dataChanged.emit( parentIndex, parentIndex )
+		self.layoutChanged.emit()
 		return True
 
 	def index(self, row, column, parentIndex):
@@ -215,16 +217,13 @@ class RigProxyModel(QtCore.QSortFilterProxyModel):
 		self.setFilterRole(RigModel.filterRole)
 		self.setFilterKeyColumn(0)
 
+	def getRoot(self):
+		return self.sourceModel()._root
+
 	def setRoot(self, root):
 		""" set root """
 		model = self.sourceModel()
 		model.setRoot(root)
-		"""
-		self.dataChanged.emit(0, 0)
-		self.layoutChanged.emit()
-		model.dataChanged.emit(0, 0)
-		model.layoutChanged.emit()
-		"""
 
 	def filterAcceptsRow(self, row_num, source_parent):
 		''' Overriding the parent function '''

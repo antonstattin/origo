@@ -17,6 +17,7 @@ from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj
 from uiutils.dialogs import newprojectdialog
 reload(signals)
 reload(rigmodel)
+reload(rigcontrol)
 
 
 # setup logger
@@ -68,7 +69,6 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self._buildUI()
         self._buildToolBar()
         self._buildMenuBar()
-
 
         # set model
         self.treeview.setModel(self._proxyModel)

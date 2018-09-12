@@ -31,15 +31,8 @@ class RigControl(object):
 	def addComponent(self, component, parent=None):
 
 		if not parent: parent = self._root
-
 		obj = component(parent)
-		#new_root = copy.deepcopy(self._root)
-		#self.setRoot(new_root)
-
-		if self._model:
-			model = self._model.sourceModel()
-			model.dataChanged.emit(0, 0)
-			model.layoutChanged.emit()
+		self.setRoot(self._root)
 
 
 	def updateSourceModel(self):
@@ -47,7 +40,6 @@ class RigControl(object):
 		if self._model:
 			model = self._model.sourceModel()
 			model.dataChanged.emit(0, 0)
-			self._model.dataChanged.emit(0, 0)
 			QtCore.QCoreApplication.processEvents()
 
 	def buildRig(self, root=None):
