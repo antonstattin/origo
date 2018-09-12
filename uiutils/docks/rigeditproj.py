@@ -2,10 +2,27 @@ try: from Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
 from origo.builders import roots
+import inspect
+import json
 import os
 
 class RigEditProj(QtWidgets.QFrame):
     """This Panel is the main widget in Edit Project """
+
+    def getAvailableRoots(self):
+        """ checks root folder for roots and returns them """
+
+        self._rootpath = os.path.dirname(roots.__file__)
+
+        available = ['RigRoot']
+
+        data = {}
+        with open(os.path.join(self._rootpath, 'declare.json')) as f:
+            data = json.load(f)
+            available.extend(data['available'])
+
+        return available
+
 
     def __init__(self, parent=None):
         super(RigEditProj, self).__init__(parent)
@@ -17,12 +34,8 @@ class RigEditProj(QtWidgets.QFrame):
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
 
-        self._rootpath = os.path.dirname(roots.__file__)
 
-        available = ['default']
-        custom = filter(lambda ofile: '__init__' not in ofile and '.pyc' not in ofile,
-                        [x.replace('.py', '') for x in os.listdir(self._rootpath)])
-        available.extend(custom)
+
 
         banner = QtWidgets.QHBoxLayout()
         banner.setAlignment(QtCore.Qt.AlignCenter)
@@ -83,7 +96,8 @@ class RigEditProj(QtWidgets.QFrame):
         self.rootLabel = QtWidgets.QLabel('Root Class')
 
         self.pickRootComboBox = QtWidgets.QComboBox()
-        for root in available: self.pickRootComboBox.addItem(root)
+        for root in self.getAvailableRoots(): self.pickRootComboBox.addItem(root)
+
 
         gridlayout.addWidget(self.rootIconLabel, 2, 0)
         gridlayout.addWidget(self.rootLabel, 2, 1)

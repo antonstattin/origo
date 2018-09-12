@@ -13,6 +13,9 @@ class MAssetImport(mrig.MRigComponent):
 
         self.add('parentmodel', 1, public=True, nicename='Parent Model', valuetype=bool)
 
+        self.set('icon', ':/joint.svg')
+        
+
     def pre(self):
         super(MAssetImport, self).pre()
 

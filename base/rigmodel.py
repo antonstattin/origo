@@ -16,7 +16,7 @@ class RigModel(QtCore.QAbstractItemModel):
 
 	def setRoot(self, root):
 
-		#self.modelReset.emit()
+		self.modelReset.emit()
 		self.layoutAboutToBeChanged.emit()
 		self._root = root
 		self.dataChanged.emit(0, 0)

@@ -5,6 +5,9 @@ except: from PySide2 import QtCore, QtWidgets, QtGui
 import origo.uiutils.widgets.newprojectdialog as newprojdialog
 import origo.base.rigdata as rigdata
 
+from origo.builders import roots as rootspackage
+import importlib
+
 class MainWindowSignals(object):
     """ This class contains all the signals/slots of the mainwindow
     """
@@ -29,6 +32,9 @@ class MainWindowSignals(object):
         self.treeview.selectionModel().currentChanged.connect(self.updatePropertiesWindow)
         self._rigmodel.dataChanged.connect(self.updateRigXmlWindow)
 
+        ## UPDATE PROJECT ##
+        self.rigEditProj.commitChangesBtn.clicked.connect(self.editProjectUpdateRoot)
+
 
 # ----------------------------------------------------------- #
 # -------------------  MENU  ACTIONS ------------------------ #
@@ -42,9 +48,9 @@ class MainWindowSignals(object):
     def _fileNewFnc(self):
         self._rigcontrol.setRoot(rigdata.RigRoot('newproject', '/'))
         self.rigEditProjDock.setVisible(True)
+        self.updateProjectEditWindow()
         self.rigProperties._clearLayout()
         self.updateTitle()
-
 
 # -------------------  WINDOW  ------------------------ #
 
@@ -63,10 +69,27 @@ class MainWindowSignals(object):
         if self.buildShelf.isVisible(): return
         self.buildShelf.setVisible(True)
 
+    def _winProjEditFnc(self):
+        if self.rigEditProjDock.isVisible(): return
+        self.rigEditProjDock.setVisible(True)
+        self.updateProjectEditWindow()
+
 
 # ------------------------------------------------------------- #
 # -------------------  UPDATE METHODS ------------------------- #
 # ------------------------------------------------------------- #
+    def updateProjectEditWindow(self):
+        """ updates the data of the new window """
+        # update data
+        projectname = self._rigcontrol._root.get('projectname')
+        projectpath = self._rigcontrol._root.get('projectpath')
+        rigclass = self._rigcontrol._root.get('class')
+        prindex = self.rigEditProj.pickRootComboBox.findText(rigclass)
+
+        if prindex != -1: self.rigEditProj.pickRootComboBox.setCurrentIndex(prindex)
+
+        self.rigEditProj.projNameLineEdit.setText(projectname)
+        self.rigEditProj.projectpathLineEdit.setText(projectpath)
 
     def updateRigXmlWindow(self, current, old):
         if not self.rigXmlDock.isVisible(): return
@@ -81,3 +104,38 @@ class MainWindowSignals(object):
         node = current.internalPointer()
 
         self.rigProperties.updateSelected(node, current)
+
+
+    def editProjectUpdateRoot(self):
+
+
+        # create question message
+        del_msg = "Are you sure you want to override and update the root settings?"
+        del_title = "Update Root Settings"
+        del_reply = QtWidgets.QMessageBox.warning(self, del_title,del_msg,
+                                                   QtWidgets.QMessageBox.Yes,
+                                                   QtWidgets.QMessageBox.No)
+
+        if del_reply != QtWidgets.QMessageBox.Yes: return
+
+
+        projname =  self.rigEditProj.projNameLineEdit.text()
+        projpath =  self.rigEditProj.projectpathLineEdit.text()
+        root = self.rigEditProj.pickRootComboBox.currentText()
+
+        modpath = '%s.%s'%(rootspackage.__name__, root.lower())
+        if root == 'RigRoot': modpath = 'origo.base.rigdata'
+
+        rootmod = importlib.import_module(modpath)
+        rootcls = getattr(rootmod, root)
+
+        new_root = rootcls(projname, projpath)
+
+        # copy children
+        children = self._rigcontrol._root.getChildren()
+        for child in children: child._parent = new_root
+        new_root._children = children
+
+        # set the new root
+        self._rigcontrol.setRoot(new_root)
+        self.updateTitle()

@@ -18,6 +18,7 @@ from uiutils.dialogs import newprojectdialog
 reload(signals)
 reload(rigmodel)
 reload(rigcontrol)
+reload(rigeditproj)
 
 
 # setup logger
@@ -80,6 +81,7 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         signals.MainWindowSignals.__init__(self)
 
         self.updateTitle()
+        self.updateProjectEditWindow()
 
     def updateTitle(self):
 
@@ -184,6 +186,7 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                             self.rigEditProjDock)
 
+
         # if project already set we don't need show project settings..
         if self._rigcontrol._root.get('projectpath') != '/':
             self.rigEditProjDock.setVisible(False)
@@ -238,7 +241,6 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
     def closeEvent(self, event):
         logger.debug("UI.closeEvent: storing window settings")
 
-        print 'save state', self.saveState(1)
         # store window settings
         self._QSettings.beginGroup("MainWindow")
         self._QSettings.setValue('size', self.size())
