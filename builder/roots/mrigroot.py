@@ -7,6 +7,7 @@ class MayaRootBuildFunction(object):
 
 		self._stage = stage
 		self._component = component
+		self._container = None
 
 	@property
 	def stage():
@@ -26,14 +27,19 @@ class MayaRootBuildFunction(object):
 
 		return name
 
+
 	def __enter__(self):
 		""" use this to run a function
 			before method before stage is run """
 		if self._component._type != 2: return self._stage
 		stage = ['pre', 'build', 'post'][self._stage-1]
-		ns = '%s_%s'%(stage, self._component.get('id'))
-		namespace = self.createNameSpace(ns)
-		cmds.namespace(setNamespace=namespace)
+
+		containerName = '%s_%s'%(stage, self._component.get('id'))
+		#namespace = self.createNameSpace(ns)
+		#cmds.namespace(setNamespace=namespace)
+
+		self._container = cmds.container(n=containerName)
+		cmds.container(self._container, c=True, e=True)
 
 		return self._stage
 
@@ -41,7 +47,10 @@ class MayaRootBuildFunction(object):
 		""" use this to run a function after
 		 	methods build stage has run"""
 		if self._component._type != 2: True
-		cmds.namespace(setNamespace=":")
+
+		if self._container:
+			cmds.container(self._container, c=False, e=True)
+
 		return True
 
 class MRigRoot(rd.RigRoot):
@@ -51,3 +60,8 @@ class MRigRoot(rd.RigRoot):
 
 		# override _builder
 		self._builder = MayaRootBuildFunction
+
+	def publish(self):
+		super(MRigRoot, self).publish()
+
+		return

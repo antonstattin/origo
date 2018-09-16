@@ -33,6 +33,7 @@ class MainWindowSignals(object):
         self._buildAllAction.triggered.connect(self._buildAllFnc)
         self._buildAction.triggered.connect(self._forwardBuildSelectedFnc)
         self._revertAction.triggered.connect(self._backwardBuildSelectedFnc)
+        self._publishAction.triggered.connect(self._publishBuildSelectedFnc)
 
 
         ## UPDATE METHODS ##
@@ -85,6 +86,9 @@ class MainWindowSignals(object):
 # -------------------  TOOLBAR  ------------------------ #
 
 # -------------------  BUILD  ------------------------ #
+
+    def _publishBuildSelectedFnc(self):
+        self._rigcontrol._root.publish()
 
     def _backwardBuildSelectedFnc(self):
         if not self.treeview.selectionModel().hasSelection(): return

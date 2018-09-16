@@ -8,7 +8,6 @@ class MRigComponent(rigdata.RigComponent):
         super(MRigComponent, self).__init__(parent)
 
         self.add('guides', {})
-        self.add('skeleton', {})
         self.add('controls', {})
         self.set('icon', ':/mayaIcon.png')
 
@@ -17,7 +16,7 @@ class MRigComponent(rigdata.RigComponent):
         groupname = "%s_mod_GRP"%self.get('name')
 
         if not cmds.objExists(groupname):
-            cmds.group(em=True, n=groupname)
+            groupname = cmds.group(em=True, n=groupname)
 
             maingrp = cmds.ls('*_MOD_*')
             if len(maingrp): cmds.parent(groupname, maingrp[0])
@@ -40,26 +39,20 @@ class MRigComponent(rigdata.RigComponent):
 
         return groupname
 
-    def _delete_namespace(self, name):
+    def _delete_container(self, name):
         """ delete namespace and all nodes in it, used to revert stage"""
-        if not cmds.namespace(exists=name): return
-
-        cmds.namespace(set=name)
-        allnodes = cmds.namespaceInfo(listOnlyDependencyNodes=True)
-        if allnodes: cmds.delete(allnodes)
-
-        cmds.namespace (set=':')
-        cmds.namespace(force=True, rm=name)
+        if not cmds.objExists(name): return
+        cmds.delete(name)
 
     def undo_pre(self):
         super(MRigComponent, self).undo_pre()
 
-        self._delete_namespace('%s_%s'%('pre', self.get('id')))
+        self._delete_container('%s_%s'%('pre', self.get('id')))
 
     def undo_build(self):
         super(MRigComponent, self).undo_build()
-        self._delete_namespace('%s_%s'%('build', self.get('id')))
+        self._delete_container('%s_%s'%('build', self.get('id')))
 
     def undo_post(self):
         super(MRigComponent, self).undo_post()
-        self._delete_namespace('%s_%s'%('post', self.get('id')))
+        self._delete_container('%s_%s'%('post', self.get('id')))
