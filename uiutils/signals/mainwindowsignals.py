@@ -5,7 +5,7 @@ except: from PySide2 import QtCore, QtWidgets, QtGui
 import origo.uiutils.widgets.newprojectdialog as newprojdialog
 import origo.base.rigdata as rigdata
 
-from origo.builders import roots as rootspackage
+from origo.builder import roots as rootspackage
 import importlib
 
 class MainWindowSignals(object):
@@ -24,7 +24,15 @@ class MainWindowSignals(object):
         self._winOpenCPWinAction.triggered.connect(self._winOpenCPWin)
         self._winOpenXmlWinAction.triggered.connect(self._winOpenXmlWin)
         self._winOpenBuildShelfAction.triggered.connect(self._winBuildShelfFnc)
+        self._winOpenProjectEditAction.triggered.connect(self._winProjEditFnc)
 
+        # TOOLBAR
+
+        # build
+
+        self._buildAllAction.triggered.connect(self._buildAllFnc)
+        self._buildAction.triggered.connect(self._forwardBuildSelectedFnc)
+        self._revertAction.triggered.connect(self._backwardBuildSelectedFnc)
 
 
         ## UPDATE METHODS ##
@@ -74,6 +82,53 @@ class MainWindowSignals(object):
         self.rigEditProjDock.setVisible(True)
         self.updateProjectEditWindow()
 
+# -------------------  TOOLBAR  ------------------------ #
+
+# -------------------  BUILD  ------------------------ #
+
+    def _backwardBuildSelectedFnc(self):
+        if not self.treeview.selectionModel().hasSelection(): return
+
+        index = self.treeview.selectionModel().selectedRows()[0]
+
+        if not index.isValid(): return
+
+
+        index= self.treeview.model().mapToSource(index)
+        rignode = self.treeview.model().sourceModel().getRigNode(index)
+
+        stage = rignode.get('bstage')
+
+        self._rigcontrol.undoStage(stage, rignode)
+
+    def _forwardBuildSelectedFnc(self):
+        if not self.treeview.selectionModel().hasSelection(): return
+
+        index = self.treeview.selectionModel().selectedRows()[0]
+
+        if not index.isValid(): return
+
+
+        index= self.treeview.model().mapToSource(index)
+        rignode = self.treeview.model().sourceModel().getRigNode(index)
+
+        stage = rignode.get('bstage')
+        self._rigcontrol.buildStage(stage+1, rignode)
+
+
+    def _buildAllFnc(self):
+
+        # create question message
+        del_msg = "Sure you want to rebuild the whole rig?"
+        del_title = "Rebuild Rig from Scratch"
+        del_reply = QtWidgets.QMessageBox.question(self, del_title,del_msg,
+                                                   QtWidgets.QMessageBox.Yes,
+                                                   QtWidgets.QMessageBox.No)
+
+        if del_reply != QtWidgets.QMessageBox.Yes: return
+
+        self._rigcontrol.buildRig()
+
 
 # ------------------------------------------------------------- #
 # -------------------  UPDATE METHODS ------------------------- #
@@ -112,7 +167,7 @@ class MainWindowSignals(object):
         # create question message
         del_msg = "Are you sure you want to override and update the root settings?"
         del_title = "Update Root Settings"
-        del_reply = QtWidgets.QMessageBox.warning(self, del_title,del_msg,
+        del_reply = QtWidgets.QMessageBox.question(self, del_title,del_msg,
                                                    QtWidgets.QMessageBox.Yes,
                                                    QtWidgets.QMessageBox.No)
 

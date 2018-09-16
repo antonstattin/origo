@@ -3,6 +3,8 @@ import abc
 try: from Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
+import origo.uiutils.widgets.righighlighter as righighlighter
+
 class AbstractPropertyWidget(QtWidgets.QWidget):
     """ Abstract property widget
 
@@ -87,6 +89,7 @@ class RigLineEditProperty(AbstractPropertyWidget):
         self.layout().addWidget(self.label)
         self.layout().addWidget(self.lineEdit)
 
+
     def setValue(self, value):
         if value == '': return
         self.lineEdit.setText(value)
@@ -100,10 +103,38 @@ class RigLineEditProperty(AbstractPropertyWidget):
     valueProperty = QtCore.Property(str, getValue, setValue)
 
 
-
-
 # ------------------- SPECIAL PROPERTYWIDGETS ------------------------ #
+class CodeEditor(QtWidgets.QTextEdit):
 
+    def __init__(self):
+        super(CodeEditor, self).__init__(None)
+        self.setTabStopWidth(20)
+        self.highlighter = righighlighter.PythonHighlighter(self, "Classic")
+
+class RigPythonScriptProperty(AbstractPropertyWidget):
+    def __init__(self, name, value, **kwarg):
+        super(RigPythonScriptProperty, self).__init__()
+
+        self.textedit = CodeEditor()
+        self.textedit.setText(value)
+        self.layout().addWidget(self.textedit)
+        self.textedit.textChanged.connect(self.submit)
+        self.layout().setSpacing(1)
+
+    def submit(self, *arg):
+        self.doSubmit.emit()
+
+    def setValue(self, val):
+        if val == '': return
+        self.textedit.setText(val)
+
+    def getValue(self):
+        return self.textedit.toPlainText()
+
+    def widget(self):
+        return self.textedit
+
+    valueProperty = QtCore.Property(str, getValue, setValue)
 
 
 

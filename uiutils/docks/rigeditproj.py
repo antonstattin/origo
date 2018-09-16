@@ -1,7 +1,7 @@
 try: from Qt import QtCore, QtWidgets, QtGui
 except: from PySide2 import QtCore, QtWidgets, QtGui
 
-from origo.builders import roots
+from origo.builder import roots
 import inspect
 import json
 import os
@@ -33,9 +33,6 @@ class RigEditProj(QtWidgets.QFrame):
         self.layout().setContentsMargins(5, 5, 5 ,5 )
         self.layout().setSpacing(5)
         self.layout().setAlignment(QtCore.Qt.AlignTop)
-
-
-
 
         banner = QtWidgets.QHBoxLayout()
         banner.setAlignment(QtCore.Qt.AlignCenter)

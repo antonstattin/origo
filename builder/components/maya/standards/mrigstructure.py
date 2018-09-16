@@ -1,5 +1,5 @@
 
-import origo.builders.components.maya.mrigcomponent as mrig
+import origo.builder.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
 
@@ -16,7 +16,7 @@ class MRigStructure(mrig.MRigComponent):
 
         self.add('suffix', 'GRP', public=True, nicename='Group Suffx')
         self.add('extra', '', public=True, nicename='Extra Groups')
-
+        self.set('icon', ':/character.svg')
     def pre(self):
         super(MRigStructure, self).pre()
 

@@ -10,39 +10,144 @@ import xml.etree.ElementTree as ET
 import importlib
 
 class RigControl(object):
+	""" The Rig control handles the rig data by loading,
+		saving, adding and building """
 
 	def __init__(self, root=None, model=None):
+		"""
+			:param root: the root object:
+			:type root: RigRoot
 
+			:param model: the model (proxy model)
+			:type model: QAbstractItemModel
+		"""
+		# the root of the project use setRoot
 		self._root = None
+
+		# the current model (proxy)
 		self._model = model
 
 		self.setRoot(root)
 
 	def setRoot(self, root):
+		""" set the root of the project
+
+			:param root: the new root
+			:type root: RigRoot
+		"""
 		self._root = root
 
+		# update the model too
 		if self._model: self._model.setRoot(self._root )
 
-	def getSelected(self):
-		if not self._model: return
-
-		self._model
-
 	def addComponent(self, component, parent=None):
+		""" adds a new component to the rig
+
+			:param component: the component object
+			:type component: RigComponent or RigLayer
+
+			:param parent: the parent to add object under default=root
+			:type paranet: RigComponent, RigLayer or RigRoot
+		"""
 
 		if not parent: parent = self._root
 		obj = component(parent)
 		self.setRoot(self._root)
 
-
 	def updateSourceModel(self):
-
+		""" updates the source model if any"""
 		if self._model:
 			model = self._model.sourceModel()
 			model.dataChanged.emit(0, 0)
+			self._model.dataChanged.emit(0, 0)
 			QtCore.QCoreApplication.processEvents()
 
-	def buildRig(self, root=None):
+	def _sortStages(self, root):
+		if not root: root = self._root
+
+		# get children under parent and parent in a list
+		allModules = [root]
+		allModules.extend(root._getRecursiveChildren())
+
+		init = filter(lambda m: m.get('bstage')==0, allModules)
+		pre = filter(lambda m: m.get('bstage')==1, allModules)
+		build = filter(lambda m: m.get('bstage')==2, allModules)
+		post = filter(lambda m: m.get('bstage')==3, allModules)
+
+		return init, pre, build, post
+
+	def _buildMods(self, modlist, stage, importdata=True):
+
+		stagename = ['pre', 'build', 'post'][stage-1]
+
+		for mod in modlist:
+			if mod._type == 1:
+				mod.set('bstage', stage)
+				continue
+
+			with self._root._builder(stage, mod):
+				mod.set('bstage', stage)
+				buildfnc = getattr(mod, stagename)
+				buildfnc()
+				self.updateSourceModel()
+
+		# if we dont want to import module data return
+		if importdata:
+			for mod in modlist: self._root.importData(stage, mod)
+
+	def undoStage(self, current_stage, root=None):
+
+		init, pre, build, post = self._sortStages(root)
+
+		if current_stage <= 3:
+			post.reverse()
+			for mod in post:
+				if mod._type == 1:
+					mod.set('bstage', 2)
+					continue
+
+				mod.undo_post()
+				mod.set('bstage', 2)
+				self.updateSourceModel()
+
+		if current_stage <= 2:
+			build.reverse()
+			for mod in build:
+				if mod._type == 1:
+					mod.set('bstage', 1)
+					continue
+				mod.undo_build()
+				mod.set('bstage', 1)
+				self.updateSourceModel()
+
+		if current_stage <= 1:
+			pre.reverse()
+			for mod in pre:
+				if mod._type == 1:
+					mod.set('bstage', 0)
+					continue
+				mod.undo_pre()
+				mod.set('bstage', 0)
+				self.updateSourceModel()
+
+	def buildStage(self, stage, parent=None, importdata=True):
+		if not parent: parent = self._root
+
+		# get children under parent and parent in a list
+		allModules = [parent]
+		allModules.extend(parent._getRecursiveChildren())
+
+		init, pre, build, post = self._sortStages(parent)
+
+		if stage >= 1:
+			self._buildMods(init, 1)
+		if stage >= 2:
+			self._buildMods(pre, 2)
+		if stage >= 3:
+			self._buildMods(build, 3)
+
+
+	def buildRig(self, root=None, importdata=True):
 		""" build rig from a clean scene """
 
 		# if we're not building from specific node, build from root
@@ -54,44 +159,10 @@ class RigControl(object):
 		# reset all modules
 		for mod in allModules: mod.set('bstage', 0)
 
-
-
-		for mod in allModules:
-			if mod._type == 1: continue # if layer
-
-			with self._root._builder(1, mod):
-				mod.set('bstage', 1)
-				mod.pre()
-				self.updateSourceModel()
-
-		for mod in allModules:
-			self._root.importData(1, mod)
-
-		for mod in allModules:
-			if mod._type == 1: continue # if layer
-
-			with self._root._builder(2, mod):
-				mod.set('bstage', 2)
-				mod.build()
-
-				self.updateSourceModel()
-
-		for mod in allModules:
-			self._root.importData(2, mod)
-
-		for mod in allModules:
-			if mod._type == 1: continue # if layer
-
-			with self._root._builder(3, mod):
-
-				mod.set('bstage', 3)
-				mod.post()
-
-				self.updateSourceModel()
-
-		for mod in allModules:
-			self._root.importData(3, mod)
-
+		# run all stages
+		self.buildStage(1, root, importdata)
+		self.buildStage(2, root, importdata)
+		self.buildStage(3, root, importdata)
 
 	def rigToXml(self):
 		""" serialize rig into xml """
@@ -146,10 +217,10 @@ class RigControl(object):
 	def saveRigxXml(self):
 		path = self._root.get('projectpath')
 
-		with open("%srig.xml"%path, "w") as oFile:
+		with open("%s/rig.xml"%path, "w") as oFile:
 			oFile.write(self.rigToXml())
 
-		logger.info("%srig.xml"%path)
+		logger.info("%s/rig.xml"%path)
 
 	def rigFromXmlFile(self, sFile):
 

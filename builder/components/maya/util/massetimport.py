@@ -1,5 +1,5 @@
 
-import origo.builders.components.maya.mrigcomponent as mrig
+import origo.builder.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
 
@@ -13,8 +13,8 @@ class MAssetImport(mrig.MRigComponent):
 
         self.add('parentmodel', 1, public=True, nicename='Parent Model', valuetype=bool)
 
-        self.set('icon', ':/joint.svg')
-        
+        self.set('icon', ':/UVTkFace.png')
+
 
     def pre(self):
         super(MAssetImport, self).pre()

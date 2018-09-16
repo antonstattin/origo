@@ -1,0 +1,4 @@
+
+
+def copy(path):
+    return

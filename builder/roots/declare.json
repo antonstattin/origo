@@ -1,0 +1,5 @@
+
+{
+  "comment":"Add the class name to available, the .py file should be named the same as the class but all lowercase",
+  "available":["MRigRoot"]
+}

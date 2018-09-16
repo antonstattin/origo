@@ -15,7 +15,7 @@ from base import rigcontrol, rigmodel, rigdata
 import uiutils.signals.mainwindowsignals as signals
 from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj
 from uiutils.dialogs import newprojectdialog
-reload(signals)
+reload(rigxml)
 reload(rigmodel)
 reload(rigcontrol)
 reload(rigeditproj)
@@ -122,9 +122,13 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         self._winOpenBuildShelfAction = QtWidgets.QAction("Show Build-Shelf", self)
 
+        self._winOpenProjectEditAction = QtWidgets.QAction("Show Project Edit", self)
+        self._winOpenProjectEditAction.setStatusTip("Show Project Edit Window")
+
         self.winMenu.addAction(self._winOpenCPWinAction)
         self.winMenu.addAction(self._winOpenXmlWinAction)
         self.winMenu.addAction(self._winOpenBuildShelfAction)
+        self.winMenu.addAction(self._winOpenProjectEditAction)
         self.menuBar().addMenu(self.winMenu)
 
     def _buildToolBar(self):
@@ -139,7 +143,6 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         buildallicon = QtGui.QPixmap(':/buildrigblue.png')
         self._buildAllAction = self.buildShelf.addAction(QtGui.QIcon(buildallicon), '')
-
         self.buildShelf.addSeparator()
 
         publishIcon = QtGui.QPixmap(':/package.png')

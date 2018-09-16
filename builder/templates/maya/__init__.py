@@ -1,0 +1,3 @@
+
+
+def initRigFromTemplate(template):

@@ -1,7 +1,5 @@
-<MRigRoot enabled="1" projectpath="/jack/shared/PERSONAL/astattin/origo/test/" inputs="{}" name="MRigRoot" id="46eb1478" projectname="coolkid" module="origo.builders.roots.mrigroot" bstage="0" regdata="{'pre': {}, 'post': {}, 'build': {}}" class="MRigRoot" outputs="{}">
- <RigLayer enabled="1" inputs="{}" name="RigLayer" id="a9ec95d7" module="origo.base.rigdata" icon=":/layer.png" color="(190, 190, 190)" bstage="0" regdata="{'pre': {}, 'post': {}, 'build': {}}" class="RigLayer" outputs="{}">
-  <MAssetImport enabled="1" assetpath="" inputs="{}" name="MAssetImport" id="b656316b" module="origo.builders.components.maya.util.massetimport" icon=":/code.png" parentmodel="1" color="(140, 140, 140)" bstage="3" regdata="{'pre': {}, 'post': {}, 'build': {}}" class="MAssetImport" outputs="{}"/>
-  <MRigStructure icon=":/code.png" outputs="{}" bstage="3" Rig="1" suffix="GRP" class="MRigStructure" id="cc47268f" Mod="1" module="origo.builders.components.maya.standards.mrigstructure" Geo="1" regdata="{'pre': {}, 'post': {}, 'build': {}}" extra="" Skeleton="1" enabled="1" Guide="1" inputs="{}" name="MRigStructure" color="(140, 140, 140)"/>
- </RigLayer>
- <RigComponent enabled="1" inputs="{}" name="RigComponent" id="33961106" module="origo.base.rigdata" icon=":/code.png" color="(140, 140, 140)" bstage="0" regdata="{'pre': {}, 'post': {}, 'build': {}}" class="RigComponent" outputs="{}"/>
+<MRigRoot id="2060cdb9" outputs="{}" projectname="pig" module="origo.builder.roots.mrigroot" bstage="0" enabled="1" name="MRigRoot" projectpath="D:/project/origo/test/" inputs="{}" class="MRigRoot" regdata="{'pre': {}, 'post': {}, 'build': {}}">
+ <chr_pig color="(140, 140, 140)" Rig="1" bstage="0" icon=":/character.svg" suffix="GRP" class="MRigStructure" name="chr_pig" Guide="1" Mod="1" Geo="1" inputs="{}" extra="" outputs="{}" enabled="1" module="origo.builder.components.maya.standards.mrigstructure" id="cc47268f" Skeleton="1" regdata="{'pre': {}, 'post': {}, 'build': {}}">
+  <importModel color="(140, 140, 140)" id="b656316b" outputs="{}" parentmodel="1" module="origo.builder.components.maya.util.massetimport" icon=":/UVTkFace.png" bstage="0" enabled="1" name="importModel" assetpath="C:/Users/Anton/Desktop/tower.fbx" inputs="{}" class="MAssetImport" regdata="{'pre': {}, 'post': {}, 'build': {}}"/>
+ </chr_pig>
 </MRigRoot>
