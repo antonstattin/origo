@@ -169,15 +169,15 @@ class RigData(object):
 		"""
 
 		# get current stage
-		currentStage = ['pre', 'build', 'post'][self.get('bstage')]
+		currentStage = ['pre', 'build', 'post'][self.get('bstage')-1]
 
 		# check if we already have stored data of dType
-		if dType not in self._dataDict['regdata'][currentStage].keys():
-			self._dataDict['regdata'][currentStage].update({dType:[]})
+		if dType not in self._dataDict['regdata']['value'][currentStage].keys():
+			self._dataDict['regdata']['value'][currentStage].update({dType:[]})
 
 		# be sure we store a list and save it
 		if type(data) != list: data = [data]
-		self._dataDict['regdata'][currentStage][dType].extend(data)
+		self._dataDict['regdata']['value'][currentStage][dType].extend(data)
 
 	def add(self, key, value, **kwarg):
 		""" add a new attribute
@@ -377,6 +377,10 @@ class RigRoot(RigNode, RigData, RigBuilder):
 
 	def importData(self, stage=None, component=None):
 		""" override this as an data import function """
+		return
+
+	def exportData(self, dType=None, stage=None, component=None):
+		""" overide this as an data export function """
 		return
 
 class RigLayer(RigNode, RigData):

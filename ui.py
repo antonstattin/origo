@@ -15,10 +15,10 @@ from base import rigcontrol, rigmodel, rigdata
 import uiutils.signals.mainwindowsignals as signals
 from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj
 from uiutils.dialogs import newprojectdialog
-reload(rigxml)
+reload(signals)
 reload(rigmodel)
 reload(rigcontrol)
-reload(rigeditproj)
+reload(rigtreeview)
 
 
 # setup logger
@@ -45,15 +45,29 @@ def inMaya(debug=logging.INFO, root=None):
     # fetch Meta
     if cmds.objExists(MASTER_CONTAINER_NAME):
         xmlfile = cmds.getAttr(MASTER_CONTAINER_NAME + '.xmlpath')
-        rc = rigcontrol.RigControl()
-        rc.rigFromXmlFile(xmlfile)
-        root = rc._root
 
-    if not root: root = rigdata.RigRoot('unamed', '/')
+        if os.path.exists(xmlfile):
+            rc = rigcontrol.RigControl()
+            rc.rigFromXmlFile(xmlfile)
+            root = rc._root
+        else:
+            # create warning message if the path isn't valid
+            del_msg = "The xml file '%s' doesn's exist..  "\
+                      "check '%s' .xmlpath attribute.."%(xmlfile,
+                                                         MASTER_CONTAINER_NAME)
+            del_title = "ORIGO: Path Is Invalid"
+            del_reply = QtWidgets.QMessageBox.warning(mayawindow,
+                                                      unicode(del_title),del_msg,
+                                                      QtWidgets.QMessageBox.Ok)
+
+    if not root: root = rigdata.RigRoot('unamed', 'None')
 
     win = UI(root, mayawindow)
     win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
     win.show()
+
+
+
 
     return win
 

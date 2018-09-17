@@ -29,16 +29,25 @@ class RigGuide(rigdata.RigNode):
         root_guide = cmds.group(em=True, n='%s_GUIDE'%self._name)
         controlshape.ControlShape.cube(root_guide)
 
+        if self._module:
+            self._module.reg('transform', root_guide)
+            self._module.reg('hierarchy', root_guide)
+
+        # parent root to guide group if any
+        guidegrp = cmds.ls('*_GUIDE_*')
+        if guidegrp: cmds.parent(root_guide, guidegrp[0])
+
         cmds.setAttr(root_guide + ".overrideEnabled", 1)
         cmds.setAttr(root_guide + ".overrideColor", 19)
 
         if self.isSkeleton: skeleton_data.append(root_guide)
         else: position_data.append(root_guide)
 
-
         for child in self._getRecursiveChildren():
             oGuide = cmds.group(em=True, n='%s_GUIDE'%child.name)
             cmds.setAttr(oGuide + ".rotateOrder", child._rotateOrder)
+
+            if self._module: self._module.reg('transform', oGuide)
 
             if child.isSkeleton:
                 fnc = getattr(controlshape.ControlShape, child.shape)

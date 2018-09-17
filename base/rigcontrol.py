@@ -95,6 +95,7 @@ class RigControl(object):
 				mod.set('bstage', stage)
 				buildfnc = getattr(mod, stagename)
 				buildfnc()
+				self._root.importData(stage, mod)
 				self.updateSourceModel()
 
 		# if we dont want to import module data return

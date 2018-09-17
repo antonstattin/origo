@@ -1,5 +1,9 @@
 import origo.base.rigdata as rd
+import origo.builder.lib.maya.io as mayaio
 import maya.cmds as cmds
+import logging
+
+logger = logging.getLogger("Origo")
 
 MASTER_CONTAINER_NAME = '_RigData'
 
@@ -80,6 +84,35 @@ class MRigRoot(rd.RigRoot):
 			data[id_name]+=1
 
 		return data
+
+	def exportData(self, dType, stage, component):
+		""" export rig-related-data to projects .rigdata folder """
+
+		# gather component attributes data
+		regdata = component.get('regdata')
+		cId = component.get('id')
+
+
+		if dType == 'ALL': dTypes = regdata[stage].keys()
+		else: dTypes = [dType]
+
+		for dType in dTypes:
+
+			# check if import type is valid
+			if not hasattr(mayaio, 'export%s'%dType.title()):
+				logger.info(' ROOT : %s : "%s" Is not yet implemented!'%(name, dType))
+				return
+
+			projectpath = self.get('projectpath')
+			name = component.get('name')
+			logger.info(' ROOT : %s : Exporting %s-%s-data '%(name, stage, dType))
+
+			exportFnc = getattr(mayaio, 'export%s'%dType.title())
+
+			# export
+			nodes = regdata[stage][dType]
+			exportFnc(nodes, projectpath, stage, cId)
+
 
 	def update(self):
 		super(MRigRoot, self).update()

@@ -28,6 +28,4 @@ class MFKChain(manimrig.MAnimRigComponent):
                                    position=[index+1, 0, 0])
             parent = oguide
 
-            print parent
-
         root.build()

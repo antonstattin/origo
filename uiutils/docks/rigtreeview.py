@@ -14,6 +14,8 @@ class RigTreeView(QtWidgets.QTreeView):
     def __init__(self, parent=None):
         super(RigTreeView, self).__init__(parent)
 
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+
     def keyPressEvent(self, e):
         """
             Delete-key : will remove selected rignode

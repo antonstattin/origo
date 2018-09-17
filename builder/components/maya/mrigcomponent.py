@@ -48,11 +48,23 @@ class MRigComponent(rigdata.RigComponent):
         super(MRigComponent, self).undo_pre()
 
         self._delete_container('%s_%s'%('pre', self.get('id')))
+        regdata = self.get('regdata')
+        regdata['pre'] = {}
+        self.set('regdata', regdata)
 
     def undo_build(self):
         super(MRigComponent, self).undo_build()
         self._delete_container('%s_%s'%('build', self.get('id')))
 
+        regdata = self.get('regdata')
+        regdata['build'] = {}
+        self.set('regdata', regdata)
+
+
     def undo_post(self):
         super(MRigComponent, self).undo_post()
         self._delete_container('%s_%s'%('post', self.get('id')))
+
+        regdata = self.get('regdata')
+        regdata['post'] = {}
+        self.set('regdata', regdata)
