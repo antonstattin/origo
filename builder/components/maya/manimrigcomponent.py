@@ -2,18 +2,23 @@ import origo.base.rigdata as rigdata
 import maya.cmds as cmds
 # /:kinJoint.png
 
+import origo.builder.lib.maya.controlshape as controlshape
+
 import mrigcomponent as mrigc
 
 class RigGuide(rigdata.RigNode):
 
     def __init__(self, name, isSkeleton=True, shape='joint',
-                 rotateOrder=0, parent=None):
+                 rotateOrder=0, position=[0,0,0], parent=None,
+                 module=None):
 
-        super(Guide, self).__init__(parent)
+        super(RigGuide, self).__init__(parent)
         self._name = name
+        self._position = position
         self._isSkeleton = isSkeleton
         self._shape = shape
         self._rotateOrder = rotateOrder
+        self._module = module
 
     def build(self):
         """should be run from the root, builds the guides"""
@@ -24,15 +29,20 @@ class RigGuide(rigdata.RigNode):
         root_guide = cmds.group(em=True, n='%s_GUIDE'%self._name)
         controlshape.ControlShape.cube(root_guide)
 
+        cmds.setAttr(root_guide + ".overrideEnabled", 1)
+        cmds.setAttr(root_guide + ".overrideColor", 19)
+
         if self.isSkeleton: skeleton_data.append(root_guide)
         else: position_data.append(root_guide)
+
 
         for child in self._getRecursiveChildren():
             oGuide = cmds.group(em=True, n='%s_GUIDE'%child.name)
             cmds.setAttr(oGuide + ".rotateOrder", child._rotateOrder)
-            
-            if child.isskeleton:
-                controlshape.ControlShape.joint(oGuide)
+
+            if child.isSkeleton:
+                fnc = getattr(controlshape.ControlShape, child.shape)
+                fnc(oGuide)
 
                 # scale joint control
                 for scale in ['.sx', '.sy', '.sz']:
@@ -48,7 +58,8 @@ class RigGuide(rigdata.RigNode):
 
                 skeleton_data.append(oGuide)
             else:
-                controlshape.ControlShape.cube(oGuide)
+                fnc = getattr(controlshape.ControlShape, child.shape)
+                fnc(oGuide)
 
                 for scale in ['.sx', '.sy', '.sz']:
                     cmds.setAttr(oGuide + scale, 0.5)
@@ -59,11 +70,13 @@ class RigGuide(rigdata.RigNode):
             cmds.setAttr(oGuide + ".overrideEnabled", 1)
             cmds.setAttr(oGuide + ".overrideColor", 19)
 
+            cmds.xform(oGuide, t=child.position, ws=True)
+
         for child in self._getRecursiveChildren():
             if not child._parent: continue
 
             oGuide = '%s_GUIDE'%child.name
-            oGuideParent = '%s_GUIDE'%child._parent
+            oGuideParent = '%s_GUIDE'%child._parent.name
 
             cmds.parent(oGuide, oGuideParent)
 
@@ -85,6 +98,13 @@ class RigGuide(rigdata.RigNode):
 
 # ------------------- Properties ------------------------ #
     @property
+    def position(self): return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position = value
+
+    @property
     def rotateOrder(self):
         return self._rotateOrder
 
@@ -104,7 +124,7 @@ class RigGuide(rigdata.RigNode):
     def isSkeleton(self):
         return self._isSkeleton
 
-    @isskeleton.setter
+    @isSkeleton.setter
     def isSkeleton(self, value):
         if isinstance(value, bool):
             self._isSkeleton=value
@@ -123,11 +143,24 @@ class MAnimRigComponent(mrigc.MRigComponent):
         super(MAnimRigComponent, self).__init__(parent)
         self.add('skeleton', {})
 
+        self.set('icon', ':/joint.svg')
+
         self._rootguide = None
 
     def addRootGuide(self, name, isSkeleton=True):
-        self._rootguide = RigGuide(name, isSkeleton)
+        self._rootguide = RigGuide(self.get('name') + name.title(),
+                                   isSkeleton, module=self)
+
         return self._rootguide
+
+    def addGuide(self, name, isSkeleton=True, shape='joint',
+                 rotateOrder=0, position=[0,0,0], parent=None):
+        if not parent: parent = self._rootguide
+
+        oGuide = RigGuide(self.get('name') + name.title(), isSkeleton,
+                          shape, rotateOrder, position, parent)
+
+        return oGuide
 
     def pre(self):
         super(MAnimRigComponent, self).pre()

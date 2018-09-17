@@ -1,5 +1,6 @@
 
 from collections import OrderedDict
+import traceback
 import logging
 import uuid
 
@@ -298,10 +299,10 @@ class RootBuildFunction(object):
 			before method before stage is run """
 		return self._stage
 
-	def __exit__(self, *args):
+	def __exit__(self, exc_type, exc_val, exc_tb):
 		""" use this to run a function after
 		 	methods build stage has run"""
-		return True
+		traceback.print_tb(exc_tb)
 
 
 # --------------------------------------------------------- #
