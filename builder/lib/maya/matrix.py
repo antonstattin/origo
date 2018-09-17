@@ -34,6 +34,9 @@ def constraint(*args, **kwargs):
     invParMult = pm.createNode("multMatrix", n='_%sInv_mtx'%name)
     decomposeMat = pm.createNode("decomposeMatrix", n='_%s_DcmpMtx'%name)
 
+    # set the rotate order
+    rotateOrder = pm.getAttr(driven + '.rotateOrder')
+    pm.setAttr(decomposeMat + '.inputRotateOrder', rotateOrder)
 
     # prevent begin cycle or create it
     if beigncycle:
@@ -43,7 +46,7 @@ def constraint(*args, **kwargs):
         parent = pm.listRelatives(driven, p=True)
 
         if parent:
-            pm.connectAttr("%s.worldInverseMatrix"%parent,
+            pm.connectAttr("%s.worldInverseMatrix"%parent[0],
                              "%s.matrixIn[1]"%invParMult)
         else: pm.delete(invParMult)
 
@@ -83,8 +86,11 @@ def constraint(*args, **kwargs):
             if mo:
                 pm.connectAttr('%s.matrixSum'%mult_objs[0],
                                   '%s.matrixIn[0]'%invParMult)
+
             else:
                 pm.connectAttr('%s.worldMatrix[0]'%drivers[0], '%s.matrixIn[0]'%invParMult)
+
+            pm.connectAttr('%s.matrixSum'%invParMult, '%s.inputMatrix'%decomposeMat)
         else:
             if mo:
                 pm.connectAttr('%s.matrixSum'%mult_objs[0], '%s.inputMatrix'%decomposeMat)

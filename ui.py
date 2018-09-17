@@ -34,12 +34,20 @@ def inMaya(debug=logging.INFO, root=None):
 
     # prevent duplicate windows in maya
     _MA_SINGELTON_WIN_OBJ_NAME = "OrigoUI"
+    MASTER_CONTAINER_NAME = '_RigData'
 
     if (cmds.window(_MA_SINGELTON_WIN_OBJ_NAME, exists=True)):
         cmds.deleteUI(_MA_SINGELTON_WIN_OBJ_NAME)
 
     mwptr = omui.MQtUtil.mainWindow()
     mayawindow = wrapInstance(long(mwptr), QtWidgets.QWidget)
+
+    # fetch Meta
+    if cmds.objExists(MASTER_CONTAINER_NAME):
+        xmlfile = cmds.getAttr(MASTER_CONTAINER_NAME + '.xmlpath')
+        rc = rigcontrol.RigControl()
+        rc.rigFromXmlFile(xmlfile)
+        root = rc._root
 
     if not root: root = rigdata.RigRoot('unamed', '/')
 

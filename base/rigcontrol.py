@@ -35,7 +35,13 @@ class RigControl(object):
 			:param root: the new root
 			:type root: RigRoot
 		"""
+		if not root: return
+
+		# set root
 		self._root = root
+
+		# run refresh root command
+		self._root.update()
 
 		# update the model too
 		if self._model: self._model.setRoot(self._root )

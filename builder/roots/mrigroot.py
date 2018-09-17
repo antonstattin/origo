@@ -1,6 +1,8 @@
 import origo.base.rigdata as rd
 import maya.cmds as cmds
 
+MASTER_CONTAINER_NAME = '_RigData'
+
 class MayaRootBuildFunction(object):
 	""" MayaRoot runs function """
 	def __init__(self, stage, component):
@@ -27,7 +29,6 @@ class MayaRootBuildFunction(object):
 
 		return name
 
-
 	def __enter__(self):
 		""" use this to run a function
 			before method before stage is run """
@@ -35,10 +36,12 @@ class MayaRootBuildFunction(object):
 		stage = ['pre', 'build', 'post'][self._stage-1]
 
 		containerName = '%s_%s'%(stage, self._component.get('id'))
-		#namespace = self.createNameSpace(ns)
-		#cmds.namespace(setNamespace=namespace)
 
 		self._container = cmds.container(n=containerName)
+
+		if cmds.objExists(MASTER_CONTAINER_NAME):
+			cmds.container(MASTER_CONTAINER_NAME, addNode=self._container, e=True)
+
 		cmds.container(self._container, c=True, e=True)
 
 		return self._stage
@@ -51,6 +54,9 @@ class MayaRootBuildFunction(object):
 		if self._container:
 			cmds.container(self._container, c=False, e=True)
 
+		# update meta data stage data?
+
+
 		return True
 
 class MRigRoot(rd.RigRoot):
@@ -61,7 +67,59 @@ class MRigRoot(rd.RigRoot):
 		# override _builder
 		self._builder = MayaRootBuildFunction
 
+	def _getStageMetaData(self):
+		nodes = cmds.container(MASTER_CONTAINER_NAME, nodeList=True, q=True)
+
+		if not nodes: return {}
+
+		data = {}
+		for node in nodes:
+			id_name = node.rpartition('_')[2]
+
+			if not data.has_key(id_name): data.update({id_name:0})
+			data[id_name]+=1
+
+		return data
+
+	def update(self):
+		super(MRigRoot, self).update()
+
+		# update meta data
+		if not cmds.objExists(MASTER_CONTAINER_NAME):
+			cmds.container(n=MASTER_CONTAINER_NAME)
+			cmds.addAttr(MASTER_CONTAINER_NAME, ln='xmlpath', dt='string')
+
+		# update the path attribute
+		cmds.setAttr(MASTER_CONTAINER_NAME + '.xmlpath',
+					 self.get('projectpath') + '/rig.xml', type='string')
+
+		stagedata = self._getStageMetaData()
+
+		# set the stages
+		for child in self._getRecursiveChildren():
+
+			child_id = child.get('id')
+			if stagedata.has_key(child_id): child.set('bstage', stagedata[child_id])
+			else:
+				stagedata.update({child_id:0})
+				child.set('bstage', 0)
+
 	def publish(self):
 		super(MRigRoot, self).publish()
 
-		return
+		if cmds.objExists(MASTER_CONTAINER_NAME):
+			build_containers = cmds.container(MASTER_CONTAINER_NAME, nodeList=True, q=True)
+			cmds.container(MASTER_CONTAINER_NAME, removeContainer=True, e=True)
+
+		for container in build_containers:
+			if not cmds.objExists(container): continue
+			if not cmds.objectType(container) == 'container': continue
+
+			nodes = cmds.container(container, nodeList=True, q=True)
+
+			if nodes:
+				for node in nodes:
+					try: cmds.container(container, removeNode=node, e=True)
+					except: continue
+
+			cmds.container(container, removeContainer=True, e=True)

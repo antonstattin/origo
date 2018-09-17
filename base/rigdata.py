@@ -362,7 +362,7 @@ class RigRoot(RigNode, RigData, RigBuilder):
 		self.add('projectpath', projectpath)
 
 	def findChild(self, id):
-		""" finds child from id """"
+		""" finds child from id """
 		for child in self._getRecursiveChildren():
 			if id == child.get('id'): return child
 
@@ -370,6 +370,9 @@ class RigRoot(RigNode, RigData, RigBuilder):
 		""" publish method """
 		logger.info('Publishing Rig..')
 
+	def update(self):
+		""" a way to 'refresh' and update the root """
+		logger.info('Updating root..')
 
 	def importData(self, stage=None, component=None):
 		""" override this as an data import function """
