@@ -1,4 +1,0 @@
-
-
-def copy(path):
-    return

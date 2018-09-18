@@ -13,6 +13,7 @@ class RigGuide(rigdata.RigNode):
                  module=None):
 
         super(RigGuide, self).__init__(parent)
+
         self._name = name
         self._position = position
         self._isSkeleton = isSkeleton
@@ -31,7 +32,6 @@ class RigGuide(rigdata.RigNode):
 
         if self._module:
             self._module.reg('transform', root_guide)
-            self._module.reg('hierarchy', root_guide)
 
         # parent root to guide group if any
         guidegrp = cmds.ls('*_GUIDE_*')
@@ -103,6 +103,10 @@ class RigGuide(rigdata.RigNode):
             cmds.delete(arrow_parent)
             cmds.delete(crv)
 
+        if self._module:
+            self._module.set('skeleton_guides', skeleton_data)
+            self._module.set('position_guides', position_data + skeleton_data)
+
         return skeleton_data, position_data
 
 # ------------------- Properties ------------------------ #
@@ -150,11 +154,65 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
     def __init__(self, parent=None):
         super(MAnimRigComponent, self).__init__(parent)
-        self.add('skeleton', {})
+        self.add('skeleton', [])
 
         self.set('icon', ':/joint.svg')
 
         self._rootguide = None
+
+    def undo_build(self):
+        super(MAnimRigComponent, self).undo_build()
+
+        skeleton_guides = self.get('skeleton_guides')
+
+        for guide in skeleton_guides:
+            if cmds.objExists(guide):
+                cmds.setAttr(guide + ".v", 1)
+
+    def build(self):
+        super(MAnimRigComponent, self).build()
+
+        # build skeleton
+        allJoints = []
+        skeleton_guides = self.get('skeleton_guides')
+
+        # create Joints
+        for guide in skeleton_guides:
+            cmds.select(clear=True)
+            jnt = cmds.joint(name=guide.replace('_GUIDE', '_JNT'))
+
+            cmds.delete(cmds.parentConstraint(guide, jnt, mo=False))
+            cmds.makeIdentity(jnt, a=True)
+            allJoints.append(jnt)
+
+            cmds.setAttr(guide + ".v", 0)
+
+        # try to find the main skeleton group
+        skeleton_grp = cmds.ls("*_SKELETON_*")
+        if skeleton_grp:
+            if cmds.objExists(skeleton_grp[0]): skeleton_grp = skeleton_grp[0]
+            else: skeleton_grp = None
+
+        # parent joints
+        for guide in skeleton_guides:
+            jnt = guide.replace('_GUIDE', '_JNT')
+
+            guide_parent = cmds.listRelatives(guide, p=True)
+            if not guide_parent:
+                if skeleton_grp: cmds.parent(jnt, skeleton_grp)
+                continue
+
+            joint_parent = guide_parent[0].replace('_GUIDE', '_JNT')
+            if cmds.objExists(joint_parent):
+                cmds.parent(jnt, joint_parent)
+            else:
+                if skeleton_grp:
+                    cmds.parent(jnt, skeleton_grp)
+
+
+        self.set('skeleton', allJoints)
+
+
 
     def addRootGuide(self, name, isSkeleton=True):
         self._rootguide = RigGuide(self.get('name') + name.title(),

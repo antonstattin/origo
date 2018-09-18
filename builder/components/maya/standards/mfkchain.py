@@ -29,3 +29,12 @@ class MFKChain(manimrig.MAnimRigComponent):
             parent = oguide
 
         root.build()
+
+    def build(self):
+        super(MFKChain, self).build()
+
+        skeletondata = self.get('skeleton')
+
+        for jnt in skeletondata:
+            ctl = cmds.circle()[0]
+            cmds.delete(cmds.parentConstraint(jnt, ctl, mo=False))

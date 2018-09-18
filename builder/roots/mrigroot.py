@@ -1,7 +1,9 @@
 import origo.base.rigdata as rd
 import origo.builder.lib.maya.io as mayaio
 import maya.cmds as cmds
+
 import logging
+import os
 
 logger = logging.getLogger("Origo")
 
@@ -85,12 +87,47 @@ class MRigRoot(rd.RigRoot):
 
 		return data
 
+	def importData(self, stage=None, component=None):
+		""" import rig-related data from the .rigdata folder
+
+			:type stage: INT!
+		"""
+
+		projpath = self.get('projectpath')
+
+		if not os.path.exists(projpath): return
+
+		cId = component.get('id')
+		cName = component.get('name')
+
+		stage = ['pre', 'build', 'post'][stage-1]
+
+		importDataPath = "%s/.rigdata/component/%s/%s"%(projpath, cId, stage)
+
+		if not os.path.exists(importDataPath): return
+
+		for sFile in os.listdir(importDataPath):
+
+			if sFile == 'versions' and '.json' not in sFile: continue
+
+			dType = sFile.replace('.json', '')
+			if not hasattr(mayaio, 'import%s'%dType.title()): continue
+
+			print sFile
+
+			importfnc = getattr(mayaio, 'import%s'%dType.title())
+			importfnc('%s/%s'%(importDataPath, sFile), cName)
+
+
+
+
 	def exportData(self, dType, stage, component):
 		""" export rig-related-data to projects .rigdata folder """
 
 		# gather component attributes data
 		regdata = component.get('regdata')
 		cId = component.get('id')
+		cname = component.get('name')
 
 
 		if dType == 'ALL': dTypes = regdata[stage].keys()
@@ -111,12 +148,12 @@ class MRigRoot(rd.RigRoot):
 
 			# export
 			nodes = regdata[stage][dType]
-			exportFnc(nodes, projectpath, stage, cId)
+			exportFnc(nodes, projectpath, dType, stage, cId, cname)
 
 
 	def update(self):
 		super(MRigRoot, self).update()
-
+		
 		# update meta data
 		if not cmds.objExists(MASTER_CONTAINER_NAME):
 			cmds.container(n=MASTER_CONTAINER_NAME)

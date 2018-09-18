@@ -6,6 +6,7 @@ logger = logging.getLogger("Origo")
 
 import rigdata
 import copy
+import os
 import xml.etree.ElementTree as ET
 import importlib
 
@@ -95,12 +96,12 @@ class RigControl(object):
 				mod.set('bstage', stage)
 				buildfnc = getattr(mod, stagename)
 				buildfnc()
-				self._root.importData(stage, mod)
+
+				if importdata:
+					self._root.importData(stage, mod)
+
 				self.updateSourceModel()
 
-		# if we dont want to import module data return
-		if importdata:
-			for mod in modlist: self._root.importData(stage, mod)
 
 	def undoStage(self, current_stage, root=None):
 
@@ -224,10 +225,28 @@ class RigControl(object):
 	def saveRigxXml(self):
 		path = self._root.get('projectpath')
 
+		if not os.path.exists(path): raise OSError("'%s' Doesn't exist!"%path)
+
+		# check that we have a .rigdata folder
+		if not os.path.isdir('%s/.rigdata'%path):
+			os.mkdir('%s/.rigdata'%path)
+
+		# check that we have a rig folder in .rigdata to store versions of rig
+		if not os.path.isdir('%s/.rigdata/rig'%path):
+			os.mkdir('%s/.rigdata/rig'%path)
+
+		version = len(os.listdir('%s/.rigdata/rig'%path)) + 1
+
+		# save to current rig
 		with open("%s/rig.xml"%path, "w") as oFile:
 			oFile.write(self.rigToXml())
 
-		logger.info("%s/rig.xml"%path)
+		# save to versions
+		with open("%s/.rigdata/rig/rig_v%s.xml"%(path, str(version).zfill(3)), "w") as oFile:
+			oFile.write(self.rigToXml())
+
+		logger.info("%s/rig.xml ( version %d )"%(path, version))
+
 
 	def rigFromXmlFile(self, sFile):
 

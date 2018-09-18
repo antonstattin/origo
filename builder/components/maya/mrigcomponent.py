@@ -7,7 +7,8 @@ class MRigComponent(rigdata.RigComponent):
     def __init__(self, parent=None):
         super(MRigComponent, self).__init__(parent)
 
-        self.add('guides', {})
+        self.add('position_guides', [])
+        self.add('skeleton_guides', [])
         self.add('controls', {})
         self.set('icon', ':/mayaIcon.png')
 
