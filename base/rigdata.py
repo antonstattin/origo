@@ -69,6 +69,9 @@ class RigNode(object):
 
 	def getChild(self, row):
 		""" returns child of current row"""
+
+		if not len(self._children): return None
+
 		if len(self._children)>row:
 			return self._children[row]
 
@@ -303,7 +306,6 @@ class RootBuildFunction(object):
 		""" use this to run a function after
 		 	methods build stage has run"""
 		traceback.print_tb(exc_tb)
-
 
 # --------------------------------------------------------- #
 # ------------------- Rig  Objects ------------------------ #

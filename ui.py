@@ -19,7 +19,7 @@ reload(signals)
 reload(rigmodel)
 reload(rigcontrol)
 reload(rigtreeview)
-
+reload(rigproperties)
 
 # setup logger
 logger = logging.getLogger("Origo")

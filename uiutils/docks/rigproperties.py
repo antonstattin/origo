@@ -79,13 +79,14 @@ class RigPropertiesPanel(QtWidgets.QWidget):
         pFrame.setObjectName('RigProperties')
         pFrame.setLayout(QtWidgets.QVBoxLayout())
         pFrame.layout().setContentsMargins(1, 1, 1 ,1 )
-        pFrame.layout().setSpacing(2)
+        pFrame.layout().setSpacing(0)
+        pFrame.layout().setAlignment(QtCore.Qt.AlignTop)
 
 
         # ---- Setup default layout ---- #
 
         default_bar = QtWidgets.QHBoxLayout()
-        default_bar.setContentsMargins(5, 2, 5, 2)
+        default_bar.setContentsMargins(5, 1, 5, 1)
         default_bar.setSpacing(5)
 
         # ---- Create default name widgets  ---- #
@@ -149,13 +150,13 @@ class RigPropertiesPanel(QtWidgets.QWidget):
 
             if valuetype == str or valuetype == unicode:
 
-                widget = propertywidgets.RigLineEditProperty(attr_name, value)
+                widget = propertywidgets.RigLineEditProperty(attr_name, value, **meta)
                 self._dataMapper.addMapping(widget, key_index, 'valueProperty')
                 pFrame.layout().addWidget(widget)
 
             elif valuetype == bool:
 
-                widget = propertywidgets.RigCheckBoxProperty(attr_name, value)
+                widget = propertywidgets.RigCheckBoxProperty(attr_name, value, **meta)
                 self._dataMapper.addMapping(widget, key_index, 'valueProperty')
                 widget.doSubmit.connect(self._dataMapper.submit)
                 pFrame.layout().addWidget(widget)

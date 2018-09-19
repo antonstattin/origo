@@ -8,11 +8,20 @@ class MRigStructure(mrig.MRigComponent):
     def __init__(self, parent=None):
         super(MRigStructure, self).__init__(parent)
 
-        self.add('Geo', 1, public=True, nicename='Create Geo Group', valuetype=bool)
-        self.add('Rig', 1, public=True, nicename='Create Rig Group', valuetype=bool)
-        self.add('Mod', 1, public=True, nicename='Create Mod Group', valuetype=bool)
-        self.add('Guide', 1, public=True, nicename='Create Guide Group', valuetype=bool)
-        self.add('Skeleton', 1, public=True, nicename='Create Skeleton Group', valuetype=bool)
+        self.add('Geo', 1, public=True, nicename='Create Geo Group',
+                 valuetype=bool, icon=':/folder-new.png')
+
+        self.add('Rig', 1, public=True, nicename='Create Rig Group',
+                valuetype=bool, icon=':/folder-new.png')
+
+        self.add('Mod', 1, public=True, nicename='Create Mod Group',
+                valuetype=bool, icon=':/folder-new.png')
+
+        self.add('Guide', 1, public=True, nicename='Create Guide Group',
+                valuetype=bool, icon=':/folder-new.png')
+
+        self.add('Skeleton', 1, public=True, nicename='Create Skeleton Group',
+                valuetype=bool, icon=':/folder-new.png')
 
         self.add('suffix', 'GRP', public=True, nicename='Group Suffx')
         self.add('extra', '', public=True, nicename='Extra Groups')

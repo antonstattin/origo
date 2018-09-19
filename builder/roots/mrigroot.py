@@ -2,6 +2,7 @@ import origo.base.rigdata as rd
 import origo.builder.lib.maya.io as mayaio
 import maya.cmds as cmds
 
+import traceback
 import logging
 import os
 
@@ -52,7 +53,7 @@ class MayaRootBuildFunction(object):
 
 		return self._stage
 
-	def __exit__(self, *args):
+	def __exit__(self, exc_type, exc_val, exc_tb):
 		""" use this to run a function after
 		 	methods build stage has run"""
 		if self._component._type != 2: True
@@ -60,8 +61,7 @@ class MayaRootBuildFunction(object):
 		if self._container:
 			cmds.container(self._container, c=False, e=True)
 
-		# update meta data stage data?
-
+		traceback.print_tb(exc_tb)
 
 		return True
 
@@ -153,7 +153,7 @@ class MRigRoot(rd.RigRoot):
 
 	def update(self):
 		super(MRigRoot, self).update()
-		
+
 		# update meta data
 		if not cmds.objExists(MASTER_CONTAINER_NAME):
 			cmds.container(n=MASTER_CONTAINER_NAME)

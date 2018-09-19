@@ -20,7 +20,7 @@ class AbstractPropertyWidget(QtWidgets.QWidget):
         super(AbstractPropertyWidget, self).__init__()
 
         self.setLayout(QtWidgets.QHBoxLayout())
-        self.setContentsMargins(2, 2, 2 ,2)
+        self.setContentsMargins(1, 1, 1 ,1)
 
     def setValue(self, value): return
 
@@ -42,10 +42,12 @@ class AbstractPropertyWidget(QtWidgets.QWidget):
 class RigCheckBoxProperty(AbstractPropertyWidget):
     """ Property for attribute values of type 'bool' """
 
-    def __init__(self, name, value):
+    def __init__(self, name, value, **kwarg):
         super(RigCheckBoxProperty, self).__init__()
 
-        self.pixmap = QtGui.QPixmap(':/done.png')
+        icon_arg = kwarg.get('icon', ':/done.png')
+
+        self.pixmap = QtGui.QPixmap(icon_arg)
         self.pixmap = self.pixmap.scaledToWidth(20, QtCore.Qt.SmoothTransformation)
         self.icon = QtWidgets.QLabel()
         self.icon.setPixmap(self.pixmap)
@@ -74,7 +76,7 @@ class RigCheckBoxProperty(AbstractPropertyWidget):
 
 class RigLineEditProperty(AbstractPropertyWidget):
     """ Property for attribute values of type 'str' """
-    def __init__(self, name, value):
+    def __init__(self, name, value, **kwarg):
         super(RigLineEditProperty, self).__init__()
 
         self.pixmap = QtGui.QPixmap(':/editObj.png')

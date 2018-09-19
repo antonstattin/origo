@@ -98,10 +98,10 @@ def constraint(*args, **kwargs):
                 pm.connectAttr('%s.worldMatrix'%drivers[0], '%s.inputMatrix'%decomposeMat)
 
     # if not no translate
-    if not nt:
+    if not nr:
         pm.connectAttr('%s.outputRotate'%decomposeMat, '%s.rotate'%driven)
     # not no rotate
-    if not nr:
+    if not nt:
         pm.connectAttr('%s.outputTranslate'%decomposeMat, '%s.translate'%driven)
 
 

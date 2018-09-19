@@ -20,6 +20,7 @@ class RigGuide(rigdata.RigNode):
         self._shape = shape
         self._rotateOrder = rotateOrder
         self._module = module
+        self._mayanode = None
 
     def build(self):
         """should be run from the root, builds the guides"""
@@ -30,6 +31,8 @@ class RigGuide(rigdata.RigNode):
         root_guide = cmds.group(em=True, n='%s_GUIDE'%self._name)
         controlshape.ControlShape.cube(root_guide)
 
+        self._mayanode = root_guide
+
         if self._module:
             self._module.reg('transform', root_guide)
 
@@ -38,7 +41,10 @@ class RigGuide(rigdata.RigNode):
         if guidegrp: cmds.parent(root_guide, guidegrp[0])
 
         cmds.setAttr(root_guide + ".overrideEnabled", 1)
-        cmds.setAttr(root_guide + ".overrideColor", 19)
+        cmds.setAttr(root_guide + ".overrideColor", 20)
+
+        for shp in cmds.listRelatives(root_guide, s=True):
+            if shp: cmds.setAttr(shp + ".lineWidth", 1.5)
 
         if self.isSkeleton: skeleton_data.append(root_guide)
         else: position_data.append(root_guide)
@@ -46,6 +52,8 @@ class RigGuide(rigdata.RigNode):
         for child in self._getRecursiveChildren():
             oGuide = cmds.group(em=True, n='%s_GUIDE'%child.name)
             cmds.setAttr(oGuide + ".rotateOrder", child._rotateOrder)
+
+            child._mayanode = oGuide
 
             if self._module: self._module.reg('transform', oGuide)
 
@@ -71,13 +79,13 @@ class RigGuide(rigdata.RigNode):
                 fnc(oGuide)
 
                 for scale in ['.sx', '.sy', '.sz']:
-                    cmds.setAttr(oGuide + scale, 0.5)
+                    cmds.setAttr(oGuide + scale, 0.8)
                 cmds.makeIdentity(oGuide, a=True)
 
                 position_data.append(oGuide)
 
             cmds.setAttr(oGuide + ".overrideEnabled", 1)
-            cmds.setAttr(oGuide + ".overrideColor", 19)
+            cmds.setAttr(oGuide + ".overrideColor", 20)
 
             cmds.xform(oGuide, t=child.position, ws=True)
 
@@ -110,6 +118,12 @@ class RigGuide(rigdata.RigNode):
         return skeleton_data, position_data
 
 # ------------------- Properties ------------------------ #
+    @property
+    def mayanode(self): return self._mayanode
+
+    @mayanode.setter
+    def mayanode(self, value): self._mayanode = value
+
     @property
     def position(self): return self._position
 
@@ -158,6 +172,9 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
         self.set('icon', ':/joint.svg')
 
+        self.add('mirrorskeleton', False, public=True, nicename='Skeleton Flip X-axis (Mirror Behavior)',
+                  valuetype=bool, icon=':/mirrorSkinWeight.png')
+
         self._rootguide = None
 
     def undo_build(self):
@@ -169,12 +186,16 @@ class MAnimRigComponent(mrigc.MRigComponent):
             if cmds.objExists(guide):
                 cmds.setAttr(guide + ".v", 1)
 
+    def pre(self):
+        super(MAnimRigComponent, self).pre()
+
     def build(self):
         super(MAnimRigComponent, self).build()
 
         # build skeleton
         allJoints = []
         skeleton_guides = self.get('skeleton_guides')
+        mirrorskeleton = self.get('mirrorskeleton')
 
         # create Joints
         for guide in skeleton_guides:
@@ -186,6 +207,11 @@ class MAnimRigComponent(mrigc.MRigComponent):
             allJoints.append(jnt)
 
             cmds.setAttr(guide + ".v", 0)
+
+            if mirrorskeleton:
+                cmds.setAttr(jnt + ".ry", 180)
+                cmds.setAttr(jnt + ".rx", 180)
+                cmds.makeIdentity(jnt, a=True)
 
         # try to find the main skeleton group
         skeleton_grp = cmds.ls("*_SKELETON_*")
@@ -215,7 +241,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 
     def addRootGuide(self, name, isSkeleton=True):
-        self._rootguide = RigGuide(self.get('name') + name.title(),
+        self._rootguide = RigGuide(self.get('name') + name,
                                    isSkeleton, module=self)
 
         return self._rootguide
@@ -224,10 +250,11 @@ class MAnimRigComponent(mrigc.MRigComponent):
                  rotateOrder=0, position=[0,0,0], parent=None):
         if not parent: parent = self._rootguide
 
-        oGuide = RigGuide(self.get('name') + name.title(), isSkeleton,
+        oGuide = RigGuide(self.get('name') + name, isSkeleton,
                           shape, rotateOrder, position, parent)
 
         return oGuide
 
-    def pre(self):
-        super(MAnimRigComponent, self).pre()
+    def addControl(self, name, **kwarg):
+
+        kwarg.get('shape', kwarg.get('s', 'circle'))
