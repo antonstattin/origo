@@ -79,7 +79,7 @@ class RigGuide(rigdata.RigNode):
                 fnc(oGuide)
 
                 for scale in ['.sx', '.sy', '.sz']:
-                    cmds.setAttr(oGuide + scale, 0.8)
+                    cmds.setAttr(oGuide + scale, 0.3)
                 cmds.makeIdentity(oGuide, a=True)
 
                 position_data.append(oGuide)
