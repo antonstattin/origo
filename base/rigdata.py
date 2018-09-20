@@ -333,9 +333,7 @@ class RigComponent(RigNode, RigData, RigBuilder):
 			:param msg: message to log
 			:type msg: str
 		"""
-		RigBuilder.log(self, '%s - %s'%(self.get('name'), msg))
-
-
+		RigBuilder.log(self, '%s : %s'%(self.get('name'), msg))
 
 class RigRoot(RigNode, RigData, RigBuilder):
 
@@ -375,7 +373,7 @@ class RigRoot(RigNode, RigData, RigBuilder):
 
 	def update(self):
 		""" a way to 'refresh' and update the root """
-		logger.info('Updating root..')
+		logger.debug('Updating root..')
 
 	def importData(self, stage=None, component=None):
 		""" override this as an data import function """

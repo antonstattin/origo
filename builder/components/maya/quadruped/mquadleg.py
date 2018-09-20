@@ -68,12 +68,6 @@ class MQuadLeg(manimrig.MAnimRigComponent):
             boneFile = os.path.join(os.path.dirname(m.__file__),
                                     'models/mquadleg_bone.ma')
 
-            # add switch for switching between models left and right side
-            cmds.addAttr(self.upperLeg.mayanode, ln='boneGeoSide', at='enum' en='Left:Right')
-            cmds.setAttr(self.upperLeg.mayanode + '.boneGeoSide', cb=True)
-
-            cmds.connectAttr(self.upperLeg.mayanode + '.boneGeoSide', cName +'BoneGEO_GRP.leftRight')
-            self.reg('attribute', self.upperLeg.mayanode + '.boneGeoSide')
 
             # import bones
             if os.path.exists(boneFile):
@@ -82,6 +76,13 @@ class MQuadLeg(manimrig.MAnimRigComponent):
                 for node in cmds.ls(nodes):
                     try:cmds.rename(node, cName + node)
                     except: continue
+
+                # add switch for switching between models left and right side
+                cmds.addAttr(self.upperLeg.mayanode, ln='boneGeoSide', at='enum', en='Left:Right')
+                cmds.setAttr(self.upperLeg.mayanode + '.boneGeoSide', cb=True)
+
+                cmds.connectAttr(self.upperLeg.mayanode + '.boneGeoSide', cName +'BoneGEO_GRP.leftRight')
+                self.reg('attribute', self.upperLeg.mayanode + '.boneGeoSide')
 
                 # setup rig
                 clsStartUpperLeg =  cName + 'StartUpperLeg_CLS'

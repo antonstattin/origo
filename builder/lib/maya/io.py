@@ -7,7 +7,10 @@ import os
 logger = logging.getLogger("Origo")
 
 def importShape(fPath, cName):
-    data = self.loadDataFromJson(fPath)
+
+    with open(fPath) as f:
+        data = json.load(f)
+
 
     for key in data.keys():
         cvdata = data[key]
@@ -20,6 +23,29 @@ def importShape(fPath, cName):
                 if '$NAME::' in cv[0]: cv[0] = cv[0].replace('$NAME::', cName)
                 cmds.xform(cv[0], t=cv[1])
             except: pass
+
+    logger.info("%s : Shape Data Imported "%(cName))
+
+def importAttribute(fPath, cName):
+
+    with open(fPath) as f:
+        data = json.load(f)
+
+    for key in data.keys():
+        value = data[key]
+
+        if '$NAME::' in key: key = key.replace('$NAME::', cName)
+
+        if not '.' in key: continue
+
+        node = key.partition('.')[0]
+        attribute = key.partition('.')[2]
+
+        if cmds.objExists(node):
+            if cmds.attributeQuery(attribute, node=key, exists=True):
+                cmds.setAttr(key, value)
+
+    logger.info("%s : Attribute Data Imported "%(cName))
 
 def importTransform(fPath, cName):
 
@@ -56,7 +82,7 @@ def importTransform(fPath, cName):
         cmds.xform(node, ro=transformData['rotate'])
         cmds.xform(node, scale=transformData['scale'])
 
-    logger.info(": %s : Transform Data Imported "%(cName))
+    logger.info("%s : Transform Data Imported "%(cName))
 
 
 def importHierarchy(fPath, cName):
@@ -77,7 +103,7 @@ def importHierarchy(fPath, cName):
 
         cmds.parent(node, parent_node)
 
-    logger.info(": %s : Hierarchy Data Imported "%(cName))
+    logger.info("%s : Hierarchy Data Imported "%(cName))
 
 
 def exportData(data, path, dtype, stage, cid):
@@ -119,6 +145,24 @@ def exportData(data, path, dtype, stage, cid):
     logger.info("Export Path: '%s'"%exportPath)
 
 
+def exportAttribute(nodes, path, dtype, stage, cId, name):
+
+    data = {}
+
+    for attribute in nodes:
+        if '.' not in attribute: continue
+
+        node = attribute.partition('.')[0]
+        if not cmds.objExists(node): continue
+
+        value = cmds.getAttr(attribute)
+        if name in attribute:
+            attribute = attribute.replace(name, '$NAME::')
+
+        data.update({attribute:value})
+
+    exportData(data, path, dtype, stage, cId)
+
 def exportShape(nodes, path, dtype, stage, cId, name):
 
     data = {}
@@ -133,11 +177,11 @@ def exportShape(nodes, path, dtype, stage, cId, name):
             for cv in cmds.ls(shape + ".cv[*]", fl=True):
                 cvpos = cmds.xform(cv, t=True, q=True)
 
-                if name in cv: cv = node.replace(cv, '$NAME::')
+                if name in cv: cv = node.replace(name, '$NAME::')
 
                 position.append([cv, cvpos])
 
-            if name in shape: shape = node.replace(shape, '$NAME::')
+            if name in shape: shape = node.replace(name, '$NAME::')
 
             data.update({shape:position})
 
@@ -173,8 +217,6 @@ def exportHierarchy(nodes, path, dtype, stage, cId, name):
 
         parent = cmds.listRelatives(node, p=True)[0]
         if name in node: node = node.replace(name, '$NAME::')
-
-        print name in node
 
         data.update({node:parent})
 

@@ -106,6 +106,7 @@ class MRigRoot(rd.RigRoot):
 
 		if not os.path.exists(importDataPath): return
 
+		logger.debug('root.importData')
 		for sFile in os.listdir(importDataPath):
 
 			if sFile == 'versions' and '.json' not in sFile: continue
@@ -113,7 +114,10 @@ class MRigRoot(rd.RigRoot):
 			dType = sFile.replace('.json', '')
 			if not hasattr(mayaio, 'import%s'%dType.title()): continue
 
-			print sFile
+			# debug import of data
+			logger.debug('.importData : sFile = %s'%sFile)
+			logger.debug('.importData : getattr(mayaio, import%s)'%dType.title())
+			logger.debug('.importData : Importfnc(%s/%s)'%(importDataPath, sFile))
 
 			importfnc = getattr(mayaio, 'import%s'%dType.title())
 			importfnc('%s/%s'%(importDataPath, sFile), cName)

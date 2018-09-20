@@ -24,7 +24,7 @@ reload(rigproperties)
 # setup logger
 logger = logging.getLogger("Origo")
 
-def inMaya(debug=logging.INFO, root=None):
+def inMaya(root=None):
     """ Open Origos UI in maya """
 
     # import maya modules
@@ -65,9 +65,6 @@ def inMaya(debug=logging.INFO, root=None):
     win = UI(root, mayawindow)
     win.setObjectName(_MA_SINGELTON_WIN_OBJ_NAME)
     win.show()
-
-
-
 
     return win
 
