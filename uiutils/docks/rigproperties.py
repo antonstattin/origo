@@ -92,7 +92,7 @@ class RigPropertiesPanel(QtWidgets.QWidget):
         # ---- Create default name widgets  ---- #
 
         editIconLabel = QtWidgets.QLabel()
-        editIcon = QtGui.QPixmap(':/build.png')
+        editIcon = QtGui.QPixmap(node.get('icon'))
         editIcon = editIcon.scaledToWidth(20, QtCore.Qt.SmoothTransformation)
         editIconLabel.setPixmap(editIcon)
 
