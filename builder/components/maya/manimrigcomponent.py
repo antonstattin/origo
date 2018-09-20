@@ -7,6 +7,7 @@ import origo.builder.lib.maya.controlshape as controlshape
 import mrigcomponent as mrigc
 
 class RigGuide(rigdata.RigNode):
+    """ class for generating guides hierarchical structures """
 
     def __init__(self, name, isSkeleton=True, shape='joint',
                  rotateOrder=0, position=[0,0,0], parent=None,
@@ -165,7 +166,10 @@ class RigGuide(rigdata.RigNode):
 
 
 class MAnimRigComponent(mrigc.MRigComponent):
-
+    """ the main base component for animation components.  This base component
+        helps with generation of skeleton and building controls.
+        if controls nor skeleton-guides are needed use the mrigcomponent..
+    """
     def __init__(self, parent=None):
         super(MAnimRigComponent, self).__init__(parent)
         self.add('skeleton', [])
@@ -178,6 +182,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
         self._rootguide = None
 
     def undo_build(self):
+        """ unhides the guides """
         super(MAnimRigComponent, self).undo_build()
 
         skeleton_guides = self.get('skeleton_guides')
@@ -190,6 +195,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
         super(MAnimRigComponent, self).pre()
 
     def build(self):
+        """ This build method will create the joints from the guides, if any """
+
         super(MAnimRigComponent, self).build()
 
         # build skeleton
@@ -238,16 +245,48 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
         self.set('skeleton', allJoints)
 
-
-
     def addRootGuide(self, name, isSkeleton=True):
+        """ Add the root guide, create the guide objects by using the .build()
+            use this components .addGuide to add more guides to the root.
+            All Guides are stored in a hierarchical order with the root guide as top.
+
+            :param name: name of root
+            :type name: str
+
+            :param isSkeleton: if we want to generate a joint from guide
+            :type isSkeleton: bool
+
+        """
+
         self._rootguide = RigGuide(self.get('name') + name,
                                    isSkeleton, module=self)
+
 
         return self._rootguide
 
     def addGuide(self, name, isSkeleton=True, shape='joint',
                  rotateOrder=0, position=[0,0,0], parent=None):
+        """ add guide object, should be used in combination with the addRootGuide
+
+            :param name: name of guide
+            :type name: str
+
+            :param isSkeleton: if the guide should generate a skeleton
+            :type isSkeleton: bool
+
+            :param shape: shape of the guide, check lib.maya.controlshape
+            :type shape: str
+
+            :param rotateOrder: rotation order
+            :type rotateOrder: int (check mayas rotation order enum)
+
+            :param position: position where the guide should be created
+            :type position: list, vector3, [x,y, z]
+
+            :param parent: guide object if none the parent is root
+            :type parent: RigGuide
+
+        """
         if not parent: parent = self._rootguide
 
         oGuide = RigGuide(self.get('name') + name, isSkeleton,
@@ -256,5 +295,35 @@ class MAnimRigComponent(mrigc.MRigComponent):
         return oGuide
 
     def addControl(self, name, **kwarg):
+        """ creates a control
 
-        kwarg.get('shape', kwarg.get('s', 'circle'))
+            :param name: name of control
+            :type name: str
+
+            ::keyword arguments::
+
+            :param shape (s): control shape (lib.maya.controlshape)
+            :type shape (s): str
+
+            :param color (c): color of control (Default side prefix color)
+            :type color (c): int (maya overrideColor enum)
+
+            :param offsets (o): offset controls to be built, default 2
+            :type offsets (o): int
+
+            :param rotateOrder (ro): controls rotate order
+            :type rotateOrder (ro): int (maya rotateOrder enum)
+
+            :param controltag (ct): if adding a maya controll tag
+            :type controltag (ct): int (maya rotateOrder enum)
+
+            :param lock (ct): attributes to lock
+            :type lock (ct): list
+        """
+
+        shape = kwarg.get('shape', kwarg.get('s', 'circle'))
+        color = kwarg.get('color', kwarg.get('c', None))
+        offsets = kwarg.get('offsets', kwarg.get('o', 2))
+        rotateOrder = kwarg.get('rotateOrder', kwarg.get('ro', 0))
+        controltag = kwarg.get('controlTag', kwarg.get('ct', True))
+        lock = kwarg.get('lock', kwarg.get('l', ['.sx', '.sy', '.sz', '.v']))
