@@ -6,6 +6,21 @@ import os
 
 logger = logging.getLogger("Origo")
 
+def importShape(fPath, cName):
+    data = self.loadDataFromJson(fPath)
+
+    for key in data.keys():
+        cvdata = data[key]
+
+        if '$NAME::' in key: key = key.replace('$NAME::', cName)
+        if not cmds.objExists(key): continue
+
+        for cv in cvdata:
+            try:
+                if '$NAME::' in cv[0]: cv[0] = cv[0].replace('$NAME::', cName)
+                cmds.xform(cv[0], t=cv[1])
+            except: pass
+
 def importTransform(fPath, cName):
 
     data = {}
@@ -103,6 +118,30 @@ def exportData(data, path, dtype, stage, cid):
     logger.info("Exported %s %s version %d"%(stage, dtype.title(), version))
     logger.info("Export Path: '%s'"%exportPath)
 
+
+def exportShape(nodes, path, dtype, stage, cId, name):
+
+    data = {}
+    for node in nodes:
+        if not cmds.objExists(node): continue
+
+        shapes = cmds.listRelatives(transform, shapes=True)
+        if not len(shapes): shapes = [transform]
+
+        for shape in shapes:
+            position = []
+            for cv in cmds.ls(shape + ".cv[*]", fl=True):
+                cvpos = cmds.xform(cv, t=True, q=True)
+
+                if name in cv: cv = node.replace(cv, '$NAME::')
+
+                position.append([cv, cvpos])
+
+            if name in shape: shape = node.replace(shape, '$NAME::')
+
+            data.update({shape:position})
+
+    exportData(data, path, dtype, stage, cId)
 
 def exportTransform(nodes, path, dtype, stage, cId, name):
 
