@@ -6,7 +6,7 @@ from functools import partial
 import importlib
 import os
 
-import origo.uiutils.widgets.newprojectdialog as newprojdialog
+import origo.uiutils.dialogs.newprojectdialog as newprojdialog
 import origo.base.rigdata as rigdata
 
 from origo.builder import roots as rootspackage

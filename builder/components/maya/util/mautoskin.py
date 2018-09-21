@@ -15,9 +15,9 @@ class MAutoSkin(mrig.MRigComponent):
 
         self.add('modelfolder', 'model_GRP', public=True, nicename='Model Group', icon=':/group.png')
         self.add('objectset', 'rig_deformers_grp', public=True, nicename='Joint Deformer Set', icon=':/objectSet.svg')
-        self.add('bindmethod', 'Heat Map', public=True, ui='origo.uiutils.widgets.'\
+        self.add('bindmethod', 'Closest Distance', public=True, ui='origo.uiutils.widgets.'\
                  'propertywidgets.RigComboBoxProperty', nicename='Bind Method', icon=':/bind.png',
-                  enums=['Heat Map', 'Baked Mush'])
+                  enums=['Closest Distance', 'Heat Map', 'Baked Mush'])
         self.set('icon', ':/paintTextureDeformer.png')
 
     def _getDeformerName(self, node):
@@ -26,7 +26,6 @@ class MAutoSkin(mrig.MRigComponent):
         cName = self.get('name')
         if '_' in node: nodename = cName + node.rpartition('_')[0].title()
         else: nodename = cName + node.title()
-
 
         return nodename
 
@@ -38,6 +37,13 @@ class MAutoSkin(mrig.MRigComponent):
             if cmds.objectType(joint) == 'joint': alljoints.append(joint)
 
         return alljoints
+
+    def closestDistanceBind(self, node):
+        """ creates a closest distance bind on node """
+        nodename = self._getDeformerName(node)
+        joints = self.getAllJoints()
+
+        cmds.skinCluster(joints, node, bindMethod=0, ignoreHierarchy=True, name='_%sBind_SKC'%(nodename))
 
     def heatMapBind(self, node):
         """ Create a heat map bind on node """
@@ -72,7 +78,10 @@ class MAutoSkin(mrig.MRigComponent):
             if cmds.objectType(node) == 'mesh' or cmds.objectType(node) == 'nurbsSurface':
                 try:
                     if bindmethod == 'Heat Map': self.heatMapBind(node)
+                    if bindmethod == 'Closest Distance': self.closestDistanceBind(node)
+
                 except RuntimeError:
-                    print 'skipping : ', node
+
                     origoLogger.debug('Skipping %s" not valid'%node)
+
                 else: continue

@@ -6,6 +6,25 @@ import os
 
 logger = logging.getLogger("Origo")
 
+def importSet(fPath, cName):
+
+    with open(fPath) as f:
+        data = json.load(f)
+
+    for key in data.keys():
+        nodes = data[key]
+
+        if not cmds.objExists(key): continue
+        if cmds.objectType(key) != 'objectSet': continue
+
+        for node in nodes:
+            if not cmds.objExists(node): continue
+            if cmds.sets(node, im=key): continue
+
+            cmds.sets(node, addElement=key)
+
+    logger.info("%s : Set Data Imported "%(cName))
+
 def importShape(fPath, cName):
 
     with open(fPath) as f:
@@ -184,6 +203,20 @@ def exportShape(nodes, path, dtype, stage, cId, name):
             if name in shape: shape = node.replace(name, '$NAME::')
 
             data.update({shape:position})
+
+    exportData(data, path, dtype, stage, cId)
+
+
+def exportSet(nodes, path, dtype, stage, cId, name):
+    """ Export a set and all it's members """
+
+    data = {}
+    for objectset in nodes:
+        if not cmds.objExists(objectset): continue
+        if cmds.objectType(objectset) != 'objectSet': continue
+
+        objects = cmds.sets(objectset, q=True)
+        data.update({objectset:objects})
 
     exportData(data, path, dtype, stage, cId)
 

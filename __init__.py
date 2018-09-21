@@ -23,7 +23,7 @@ origo_logger.setLevel(debugmode)
 
 # setup origo formatters
 debug_formatter = logging.Formatter('%(levelname)s : Origo : %(module)s : %(funcName)s : %(message)s')
-info_formatter = logging.Formatter('Origo : %(module)s :%(message)s')
+info_formatter = logging.Formatter('Origo : %(module)s : %(message)s')
 
 # setup origofile  formatters
 

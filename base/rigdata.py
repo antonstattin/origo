@@ -17,35 +17,26 @@ class RigBuilder(object):
 	"""
 
 # ------------------- Build methods ------------------------ #
+
 	def pre(self):
-		self.log('Running pre method..')
+		logger.info('Running pre method..')
 
 	def build(self):
-		self.log('Running build method..')
+		logger.info('Running build method..')
 
 	def post(self):
-		self.log('Running post method..')
+		logger.info('Running post method..')
 
 # ------------------- Undo methods ------------------------ #
 
 	def undo_post(self):
-		self.log('undo post..')
+		logger.info('undo post..')
 
 	def undo_build(self):
-		self.log('undo build..')
+		logger.info('undo build..')
 
 	def undo_pre(self):
-		self.log('undo pre..')
-
-# ------------------- methods ------------------------ #
-
-	def log(self, msg):
-		"""log data
-
-		   :param msg: message to log
-		   :type msg: str
-		"""
-		logger.info('{} : {}'.format(self.__class__.__name__, msg))
+		logger.info('undo pre..')
 
 
 class RigNode(object):
@@ -251,6 +242,16 @@ class RigData(object):
 							  self._dataDict.items())
 
 		return [(key, data) for key, data in publicfilter]
+
+	def log(self, msg):
+		"""log data
+
+			   :param msg: message to log
+			   :type msg: str
+		"""
+		cName = self.get('name') # get the components user specified name
+		logger.info('{} : {}'.format(cName, msg))
+
 
 # ------------------- private methods ------------------------ #
 
