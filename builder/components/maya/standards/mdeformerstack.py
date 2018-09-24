@@ -138,8 +138,6 @@ class MDeformerStack(mrig.MRigComponent):
         if not len(allJoints):
             allJoints = [self._getDumpjoint()]
 
-        print allJoints
-
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
             cmds.skinCluster(allJoints, node, bindMethod=0, n="%s%d_SKC"%(fulldeformername, e))

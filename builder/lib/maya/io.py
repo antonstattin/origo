@@ -6,6 +6,13 @@ import os
 
 logger = logging.getLogger("Origo")
 
+def importWeights(fPath, cName):
+
+    filename = os.path.basename(fPath)
+    path = os.path.dirname(fPath)
+
+    cmds.deformerWeights(filename, path=path, vc=True, deformer='skinCluster1', export=True)
+
 def importSet(fPath, cName):
 
     with open(fPath) as f:
@@ -125,7 +132,7 @@ def importHierarchy(fPath, cName):
     logger.info("%s : Hierarchy Data Imported "%(cName))
 
 
-def exportData(data, path, dtype, stage, cid):
+def exportData(data, path, dtype, stage, cid, ext='json'):
 
     # check that we have a .rigdata folder
     if not os.path.isdir('%s/.rigdata'%path):
@@ -157,7 +164,7 @@ def exportData(data, path, dtype, stage, cid):
                          os.listdir('%s/versions'%exportPath))) + 1
 
     # save new version
-    with open('%s/versions/%s_%s.json'%(exportPath, dtype, str(version).zfill(3)), 'w') as outfile:
+    with open('%s/versions/%s_%s.%s'%(exportPath, dtype, str(version).zfill(3), ext), 'w') as outfile:
         json.dump(data, outfile, indent=4)
 
     logger.info("Exported %s %s version %d"%(stage, dtype.title(), version))
