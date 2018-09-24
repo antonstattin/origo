@@ -61,7 +61,8 @@ class MayaRootBuildFunction(object):
 		if self._container:
 			cmds.container(self._container, c=False, e=True)
 
-		traceback.print_tb(exc_tb)
+		if exc_type:
+			traceback.print_exception(exc_type, exc_val, exc_tb)
 
 		return True
 

@@ -1,7 +1,5 @@
 import origo.base.rigdata as rigdata
 import maya.cmds as cmds
-# /:kinJoint.png
-
 import origo.builder.lib.maya.controlshape as controlshape
 
 import mrigcomponent as mrigc
@@ -172,10 +170,13 @@ class MAnimRigComponent(mrigc.MRigComponent):
 	"""
 	def __init__(self, parent=None):
 		super(MAnimRigComponent, self).__init__(parent)
+
 		self.add('skeleton', [])
+		self.add('animcontrols', [])
+		self.add('position_guides', [])
+		self.add('skeleton_guides', [])
 
 		self.set('icon', ':/joint.svg')
-
 		self.add('mirrorskeleton', False, public=True, nicename='Skeleton Flip X-axis (Mirror Behavior)',
 				  valuetype=bool, icon=':/mirrorSkinWeight.png')
 
@@ -304,8 +305,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 			::keyword arguments::
 
-			:param shape (s): control shape (lib.maya.controlshape)
-			:type shape (s): str
+			:param shape (shp): control shape (lib.maya.controlshape)
+			:type shape (shp): str
 
 			:param color (c): color of control (Default side prefix color)
 			:type color (c): int (maya overrideColor enum)
@@ -321,11 +322,145 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 			:param lock (ct): attributes to lock
 			:type lock (ct): list
+
+			:param lineWidth (w): width of the curve (thickness)
+			:type lineWidth (w): float
+
+			:param secondary (sec): specify if control is a secondary control
+			:type secondary (sec): bool
+
+			:param size (s): size of control
+			:type size (s): float
+
+			:param offsetControls (oc): number of offset controls
+			:type offsetControls (oc): int
 		"""
 
-		shape = kwarg.get('shape', kwarg.get('s', 'circle'))
+		controls = self.get('animcontrols')
+		controlprefix = self.get('name')
+
+		# query arguments
+		shape = kwarg.get('shape', kwarg.get('shp', 'circle'))
 		color = kwarg.get('color', kwarg.get('c', None))
 		offsets = kwarg.get('offsets', kwarg.get('o', 2))
 		rotateOrder = kwarg.get('rotateOrder', kwarg.get('ro', 0))
 		controltag = kwarg.get('controlTag', kwarg.get('ct', True))
 		lock = kwarg.get('lock', kwarg.get('l', ['.sx', '.sy', '.sz', '.v']))
+		linewidth = kwarg.get('lineWidth', kwarg.get('w', 1.5))
+		secondary = kwarg.get('secondary', kwarg.get('sec', False))
+		size = kwarg.get('size', kwarg.get('w', 1.0))
+		offsetControls = kwarg.get('offsetControls', kwarg.get('oc', 0))
+		matchTranslate = kwarg.get('matchTranslate', kwarg.get('mt', None))
+		matchRotate = kwarg.get('matchRotate', kwarg.get('mr', None))
+
+		# check if any prefix
+		findprefix = self.get('name').split('_')
+		if len(findprefix)>1 and findprefix[0] in ['L', 'R', 'C']:
+			prefix = findprefix[0]
+		else: prefix = 'C' # set center as default
+
+		# generate color from prefix if not specified
+		secondaryColor = 9
+		if not color:
+			if prefix == 'C':
+				secondaryColor =  21
+				if secondary: color = 21
+				else: color = 22
+			elif prefix == 'L':
+				secondaryColor = 28
+				if secondary: color = 28
+				else: color = 18
+			elif prefix == 'R':
+				secondaryColor = 12
+				if secondary: color = 12
+				else: color = 4
+
+		# create control
+		controlname = '{}{}'.format(controlprefix, name)
+		ctl = cmds.group(em=True, n='%s_CTL'%controlname)
+		controls.append(ctl)
+
+
+		# get control function
+		shapefnc = getattr(controlshape.ControlShape, shape)
+		shapefnc(ctl)
+
+		cmds.setAttr(ctl + '.sx', size)
+		cmds.setAttr(ctl + '.sy', size)
+		cmds.setAttr(ctl + '.sz', size)
+		cmds.makeIdentity(ctl, a=True)
+
+		# set line width
+		for shp in cmds.listRelatives(ctl, s=True):
+			cmds.setAttr(shp + '.lineWidth', linewidth)
+
+		# set color
+		cmds.setAttr(ctl + '.overrideEnabled', True)
+		cmds.setAttr(ctl + '.overrideColor', color)
+
+		if offsets < 1: offsets = 1
+
+		offsetgroups = []
+		for i in xrange(1, offsets+1):
+			offsetname = '%sOffset%d_GRP'%(controlname, i)
+			offsetgroup = cmds.group(em=True, n=offsetname)
+
+			if len(offsetgroups):
+				cmds.parent(offsetgroup, offsetgroups[len(offsetgroups)-1])
+
+			offsetgroups.append(offsetgroup)
+
+		cmds.parent(ctl, offsetgroups[len(offsetgroups)-1])
+
+		offsetctls = []
+		for i in xrange(1, offsetControls+1):
+			offsetname = '%sOffset%d_CTL'%(controlname, i)
+			offsetctl = cmds.group(em=True, n=offsetname)
+			shapefnc(offsetctl)
+			controls.append(offsetctl)
+
+			cmds.setAttr(offsetctl + '.sx', size/2.0)
+			cmds.setAttr(offsetctl + '.sy', size/2.0)
+			cmds.setAttr(offsetctl + '.sz', size/2.0)
+			cmds.makeIdentity(offsetctl, a=True)
+
+			cmds.setAttr(offsetctl + '.overrideEnabled', True)
+			cmds.setAttr(offsetctl + '.overrideColor', secondaryColor)
+
+			if len(offsetctls):
+				cmds.parent(offsetctl, offsetctls[len(offsetctls)-1])
+			offsetctls.append(offsetctl)
+
+		if len(offsetctls):
+			cmds.parent(offsetctls[0], ctl)
+
+			cmds.addAttr(ctl, ln='offsetControls', dv=False, at='bool')
+			cmds.setAttr(ctl + '.offsetControls', cb=True)
+
+			cmds.connectAttr(ctl + '.offsetControls', offsetctls[0] + '.v')
+
+			root = offsetctls[len(offsetctls)-1]
+
+		else: root = ctl
+
+		if matchTranslate:
+			if cmds.objExists(matchTranslate):
+				position = cmds.xform(matchTranslate, t=True, ws=True, q=True)
+				cmds.xform(offsetgroups[0], t=position, ws=True)
+
+		if matchRotate:
+			if cmds.objExists(matchRotate):
+				rotation = cmds.xform(matchRotate, ro=True, ws=True, q=True)
+				cmds.xform(offsetgroups[0], ro=rotation, ws=True)
+
+		if lock:
+			for attr in lock:
+				cmds.setAttr(ctl + attr, k=False, l=True, cb=False)
+				#cmds.setAttr(ctl + attr, )
+
+		cmds.parent(offsetgroups[0], self.getModGroup())
+
+		self.set('animcontrols', controls)
+
+		return {'ctl':ctl, 'root':root, 'offsetControls':offsetctls,
+				'offsetgroups':offsetgroups}

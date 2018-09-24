@@ -57,6 +57,7 @@ class RigCheckBoxProperty(AbstractPropertyWidget):
 		self.layout().addWidget(self.icon)
 		self.layout().addWidget(self.label)
 		self.layout().addWidget(self.checkbox)
+		self.layout().setAlignment(QtCore.Qt.AlignLeft)
 
 
 		self.checkbox.stateChanged.connect(self.submit)
@@ -138,9 +139,6 @@ class RigComboBoxProperty(AbstractPropertyWidget):
 		self.layout().addStretch()
 
 		self.comboBox.currentIndexChanged.connect(self.submit)
-		print self.comboBox.currentText()
-
-
 
 	def submit(self, *arg):
 		self.doSubmit.emit()
