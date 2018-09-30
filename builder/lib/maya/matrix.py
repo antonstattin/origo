@@ -110,3 +110,37 @@ def constraint(*args, **kwargs):
 
 
 	return decomposeMat, wtMat
+
+
+def jointConstraint(tf, jnt, name="jntconstriant"):
+	""" constraint transform to joint preserve joint orients """
+
+	t_mat = pm.createNode("multMatrix", n=name + "Trans_MAT")
+	r_mat = pm.createNode("multMatrix", n=name + "Rot_MAT")
+	t_dmat = pm.createNode("decomposeMatrix", n=name + "Trans_DMAT")
+	r_dmat = pm.createNode("decomposeMatrix", n=name + "Rot_DMAT")
+	inv_mat = pm.createNode("inverseMatrix", n=name + "InvMat_TMP")
+
+	rotateOrder = pm.getAttr(tf + '.rotateOrder')
+	pm.setAttr(t_dmat + '.inputRotateOrder', rotateOrder)
+	pm.setAttr(r_dmat + '.inputRotateOrder', rotateOrder)
+
+	tf = pm.PyNode(tf)
+	jnt = pm.PyNode(jnt)
+
+	tf.worldMatrix[0] >> t_mat.matrixIn[0]
+	jnt.parentInverseMatrix[0] >> t_mat.matrixIn[1]
+
+	t_mat.matrixSum >> t_dmat.inputMatrix
+	t_dmat.outputTranslate >> jnt.translate
+	t_dmat.outputScale >> jnt.scale
+	t_dmat.outputShear >> jnt.shear
+
+	t_mat.matrixSum >> r_mat.matrixIn[0]
+	t_mat.matrixSum >> inv_mat.inputMatrix
+
+	r_mat.matrixIn[1].set(inv_mat.outputMatrix.get())
+	pm.delete(inv_mat)
+
+	r_mat.matrixSum >> r_dmat.inputMatrix
+	r_dmat.outputRotate >> jnt + ".rotate"

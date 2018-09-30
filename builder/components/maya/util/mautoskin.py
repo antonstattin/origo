@@ -43,14 +43,16 @@ class MAutoSkin(mrig.MRigComponent):
         nodename = self._getDeformerName(node)
         joints = self.getAllJoints()
 
-        cmds.skinCluster(joints, node, bindMethod=0, ignoreHierarchy=True, name='_%sBind_SKC'%(nodename))
+        skc = cmds.skinCluster(joints, node, bindMethod=0, ignoreHierarchy=True, name='_%sBind_SKC'%(nodename))
+        self.reg('weight', skc)
 
     def heatMapBind(self, node):
         """ Create a heat map bind on node """
 
         nodename = self._getDeformerName(node)
         joints = self.getAllJoints()
-        cmds.skinCluster(joints, node, bindMethod=2, dr=4.0, ignoreHierarchy=True, name='_%sBind_SKC'%(nodename))
+        skc = cmds.skinCluster(joints, node, bindMethod=2, dr=4.0, ignoreHierarchy=True, name='_%sBind_SKC'%(nodename))
+        self.reg('weight', skc)
 
     def post(self):
         super(MAutoSkin, self).post()

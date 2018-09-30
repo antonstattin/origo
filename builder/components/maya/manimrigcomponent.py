@@ -182,6 +182,13 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 		self._rootguide = None
 
+	def addToSkeletonSet(self, bones):
+
+		if not cmds.objExists('skeleton_SET'):
+			cmds.sets(n='skeleton_SET')
+		cmds.sets(bones, addElement='skeleton_SET')
+
+
 	def undo_build(self):
 		""" unhides the guides """
 		super(MAnimRigComponent, self).undo_build()
@@ -245,7 +252,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 				if skeleton_grp:
 					cmds.parent(jnt, skeleton_grp)
 
-
+		self.addToSkeletonSet(allJoints)
 		self.set('skeleton', allJoints)
 
 	def addRootGuide(self, name, isSkeleton=True):
@@ -381,6 +388,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		controls.append(ctl)
 
 
+
+
 		# get control function
 		shapefnc = getattr(controlshape.ControlShape, shape)
 		shapefnc(ctl)
@@ -461,6 +470,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		cmds.parent(offsetgroups[0], self.getModGroup())
 
 		self.set('animcontrols', controls)
+		self.reg('shape', controls)
 
 		return {'ctl':ctl, 'root':root, 'offsetControls':offsetctls,
 				'offsetgroups':offsetgroups}

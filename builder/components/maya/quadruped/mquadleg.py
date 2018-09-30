@@ -18,7 +18,6 @@ class MQuadLeg(manimrig.MAnimRigComponent):
         self.add('importboneguides', False, public=True, nicename='Bone Guides',
                   valuetype=bool, icon=':/cube.png')
 
-
     def pre(self):
         super(MQuadLeg, self).pre()
 
@@ -119,7 +118,6 @@ class MQuadLeg(manimrig.MAnimRigComponent):
     def build(self):
         super(MQuadLeg, self).build()
 
-
         # query data
         cName = self.get('name')
         skeletondata = self.get('skeleton')
@@ -136,7 +134,31 @@ class MQuadLeg(manimrig.MAnimRigComponent):
         heelRoll = bankrollpositionsdata[3]
 
 
+
+        fkA = self.addControl('UpperLegFK', extra=1, size=0.8, mr=skeletondata[0],
+                              mt=skeletondata[0], shp='square',
+                              lock=['.sx', '.sy', '.sz', '.v', '.tx', '.ty', '.tz'])
+
+        fkB = self.addControl('KneeFK', extra=1, size=0.8, mr=skeletondata[1],
+                                mt=skeletondata[1], shp='square',
+                                lock=['.sx', '.sy', '.sz', '.v', '.tx', '.ty', '.tz'])
+
+        fkC = self.addControl('AnkleFK', extra=1, size=0.8, mr=skeletondata[2],
+                              mt=skeletondata[2], shp='square',
+                              lock=['.sx', '.sy', '.sz', '.v', '.tx', '.ty', '.tz'])
+
+        fkD = self.addControl('TarsalFK', extra=1, size=0.8,
+                              mr=skeletondata[3], mt=skeletondata[3], shp='square',
+                              lock=['.sx', '.sy', '.sz', '.v', '.tx', '.ty', '.tz'])
+
+        cmds.parent(fkB['offsetgroups'][0], fkA['root'])
+        cmds.parent(fkC['offsetgroups'][0], fkB['root'])
+        cmds.parent(fkD['offsetgroups'][0], fkC['root'])
+
         legIk = self.addControl('Ik', extra=1, size=0.8, mt=skeletondata[3], shp='cube')
+        rotIk = self.addControl('AlignRotIk', extra=1, size=0.8, mr=skeletondata[3],
+                                lock=['.sx', '.sy', '.sz', '.v', '.tx', '.ty', '.tz'],
+                                mt=skeletondata[3], shp='circle')
 
         legPv = self.addControl('PV', extra=1, size=0.5, mt=skeletondata[1], shp='joint',
                                 lock=['.sx', '.sy', '.sz', '.v', '.rx', '.ry', '.rz'])
@@ -147,7 +169,40 @@ class MQuadLeg(manimrig.MAnimRigComponent):
         mjoint.placePoleVector(skeletondata[0], skeletondata[1],
                                skeletondata[2], legPv['offsetgroups'][0], 3.0)
 
+
+
+
         ikfkData = mlimb.ikfk(skeletondata[:3], legPv['ctl'], cName + 'IkFK')
+
+        cmds.connectAttr(ikfkData['blend'], fkA['offsetgroups'][0] + '.v')
+        cmds.connectAttr(ikfkData['blendrev'], legIk['offsetgroups'][0] + '.v')
+        cmds.connectAttr(ikfkData['blendrev'], legPv['offsetgroups'][0] + '.v')
+        cmds.connectAttr(ikfkData['blendrev'], tarsal['offsetgroups'][0] + '.v')
+
+        cmds.parent(ikfkData['fks'][0], fkA['root'])
+        cmds.parent(ikfkData['fks'][1], fkB['root'])
+        cmds.parent(ikfkData['fks'][2], fkC['root'])
+
+
+        pivOffset = cmds.group(em=True, n=cName + 'PivotOffset_GRP')
+        outPiv = cmds.group(em=True, n=cName + 'OutBank_PIVOT')
+        inPiv = cmds.group(em=True, n=cName + 'InBank_PIVOT')
+        toePiv = cmds.group(em=True, n=cName + 'ToeRoll_PIVOT')
+        heelPiv = cmds.group(em=True, n=cName + 'heelRoll_PIVOT')
+
+
+        cmds.delete(cmds.parentConstraint(heelRoll, heelPiv, mo=False))
+        cmds.delete(cmds.parentConstraint(toeRoll, toePiv, mo=False))
+        cmds.delete(cmds.parentConstraint(inBankTransform, inPiv, mo=False))
+        cmds.delete(cmds.parentConstraint(outBankTransform, outPiv, mo=False))
+
+        cmds.parent(outPiv, inPiv)
+        cmds.parent(inPiv, toePiv)
+        cmds.parent(toePiv, heelPiv)
+        cmds.parent(heelPiv, pivOffset)
+        cmds.parent(pivOffset, legIk['root'])
+        cmds.parent(rotIk['offsetgroups'][0], outPiv)
+
 
         # add polevector arrow for easier selection
         arrow = cmds.createNode("annotationShape")
@@ -167,6 +222,10 @@ class MQuadLeg(manimrig.MAnimRigComponent):
 
         # pv constraint
         cmds.poleVectorConstraint(legPv['ctl'] , ikfkData["ikhandle"], n="%s_PVC"%cName)
+
+        matrix.jointConstraint(ikfkData['outs'][0], skeletondata[0], name='%sUpperLegJntMtx'%cName)
+        matrix.jointConstraint(ikfkData['outs'][1], skeletondata[1], name='%sKneeJntMtx'%cName)
+        matrix.jointConstraint(ikfkData['outs'][2], skeletondata[2], name='%sAnkleJntMtx'%cName)
 
 
         # create ikSpringSolver for tarsal alignment
@@ -196,6 +255,99 @@ class MQuadLeg(manimrig.MAnimRigComponent):
                       sj=auto_tarsal_chain[0], ee=auto_tarsal_chain[3])[0]
         cmds.setAttr(ikss + ".v", 0)
         cmds.poleVectorConstraint(legPv['ctl'], ikss, n="{}IKAutoTarsal_PVCON".format(cName))[0]
+
+        tarsalDPos = cmds.xform(auto_tarsal_chain[3], t=True, ws=True, q=True)
+        tarsalCPos = cmds.xform(auto_tarsal_chain[2], t=True, ws=True, q=True)
+
+        cmds.select(clear=True)
+        startJnt = cmds.joint(p=tarsalDPos, n=cName + 'TarsalAutoRotA_DRIV')
+        endJnt = cmds.joint(p=tarsalCPos, n=cName + 'TarsalAutoRotB_DRIV')
+        cmds.joint(startJnt, e=True, zso=True, oj='yzx', sao='yup')
+        tarsalIk = cmds.ikHandle(sol='ikSCsolver', n=cName + 'TarsalAutoRot_IKSC',
+                                 sj=startJnt, ee=endJnt)
+        cmds.setAttr(startJnt + '.v', 0)
+        cmds.setAttr(tarsalIk[0] + '.v', 0)
+
+        cmds.parent(tarsalIk[0], auto_tarsal_chain[2])
+        cmds.parent(startJnt, legIk['offsetgroups'][0])
+        cmds.parent(ikss, legIk['root'])
+
+        #matrix.constraint(legIk['ctl'], startJnt, norotate=True)
+        matrix.constraint(outPiv, startJnt, norotate=True)
+
+        addIkRot = cmds.createNode('multMatrix', n= '_' + cName + 'AddIkRot_MMTX')
+        addIkRotDc = cmds.createNode('decomposeMatrix', n= '_' + cName + 'AddIkRot_DMTX')
+        ikRotBlend = cmds.createNode('blendColors', n= '_' + cName + 'IKRotationControl_BLEND')
+        cmds.connectAttr(legIk['ctl'] + '.matrix', addIkRot + '.matrixIn[0]')
+
+        ikRotSpace = cmds.group(n=cName + 'IkRotMtx_SPACE', em=True)
+        cmds.delete(cmds.pointConstraint(legIk['ctl'], ikRotSpace))
+        cmds.parent(ikRotSpace, legIk['root'])
+
+        matrix.constraint(rotIk['root'], ikRotSpace, notranslate=True)
+
+        cmds.connectAttr(ikRotSpace + '.matrix', addIkRot + '.matrixIn[1]')
+        cmds.connectAttr(addIkRot + '.matrixSum', addIkRotDc+ '.inputMatrix')
+
+        cmds.setAttr(ikRotBlend + '.color2', 0,0,0, type='double3')
+        cmds.connectAttr(addIkRotDc + '.outputRotate', ikRotBlend + '.color1')
+
+        cmds.addAttr(tarsal['ctl'], ln='ikRotation', dv=0.0, min=0.0, max=1.0)
+        cmds.setAttr(tarsal['ctl'] + '.ikRotation', cb=True)
+        cmds.setAttr(tarsal['ctl'] + '.ikRotation', k=True)
+        cmds.connectAttr(tarsal['ctl'] + '.ikRotation', ikRotBlend + '.blender')
+
+        autoTarsalBlend = cmds.createNode('blendColors', n= '_' + cName + 'AutoTarsal_BLEND')
+        cmds.setAttr(autoTarsalBlend + '.color2', 0,0,0, type='double3')
+        cmds.connectAttr(startJnt + '.rotate', autoTarsalBlend + '.color1')
+
+        cmds.addAttr(tarsal['ctl'], ln='autoTarsalAlign', dv=0.0, min=0.0, max=1.0)
+        cmds.setAttr(tarsal['ctl'] + '.autoTarsalAlign', cb=True, k=True)
+        cmds.setAttr(tarsal['ctl'] + '.autoTarsalAlign', k=True)
+        cmds.connectAttr(tarsal['ctl'] + '.autoTarsalAlign', autoTarsalBlend + '.blender')
+
+        pma = cmds.createNode('plusMinusAverage', n='_' + cName + 'TaraslRotate_OUT')
+        cmds.connectAttr(ikRotBlend + '.output', pma + '.input3D[0]')
+        cmds.connectAttr(autoTarsalBlend + '.output', pma + '.input3D[1]')
+
+        cmds.connectAttr(pma + '.output3D', tarsal['offsetgroups'][1] + '.rotate')
+
+        #matrix.constraint(legIk['root'], tarsal['offsetgroups'][0], norotate=True)
+        matrix.constraint(outPiv, tarsal['offsetgroups'][0], norotate=True)
+
+
+        cmds.parent(cmds.listRelatives(ikfkData['ikhandle'], p=True)[0], tarsal['root'])
+
+        # setup toe
+        tarsalIk = cmds.ikHandle(sol='ikSCsolver', sj= skeletondata[2],
+                                 ee=skeletondata[3], n=cName + 'Tarsal_IKSC')
+        toeIk = cmds.ikHandle(sol='ikSCsolver', sj= skeletondata[3],
+                              ee=skeletondata[4], n=cName + 'Toe_IKSC')
+
+        toeRotation = cmds.group(em=True, n=cName + 'ToeRotation_GRP')
+        tarsaIKSCBuff = cmds.group(em=True, n=cName + 'TarsalIKSCMove_BUFF')
+
+        cmds.parent(toeIk[0], toeRotation)
+        cmds.parent(toeRotation, legIk['offsetgroups'][0])
+
+        cmds.setAttr(tarsalIk[0] + '.v', 0)
+        cmds.setAttr(toeIk[0] + '.v', 0)
+
+        cmds.parent(tarsaIKSCBuff, legIk['offsetgroups'][0])
+        cmds.parent(tarsalIk[0], tarsaIKSCBuff)
+
+
+        decomp, rotwtmat = matrix.constraint(rotIk['root'], fkD['root'], toeRotation,
+                                             n=cName + 'ToeRotBlend_WMTX')
+
+        decomp, tarsalwtmat = matrix.constraint(rotIk['root'], fkC['root'], tarsaIKSCBuff,
+                                                n=cName + 'TarsalMoveBlend_WMTX')
+
+        cmds.connectAttr(ikfkData['blendrev'], rotwtmat  + ".wtMatrix[0].weightIn")
+        cmds.connectAttr(ikfkData['blend'], rotwtmat +".wtMatrix[1].weightIn")
+
+        cmds.connectAttr(ikfkData['blendrev'], tarsalwtmat  + ".wtMatrix[0].weightIn")
+        cmds.connectAttr(ikfkData['blend'], tarsalwtmat +".wtMatrix[1].weightIn")
 
 
     def undo_build(self):

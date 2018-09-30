@@ -1,17 +1,56 @@
 
 import maya.cmds as cmds
+import xml.etree.ElementTree as et
 import json
 import logging
 import os
 
 logger = logging.getLogger("Origo")
 
-def importWeights(fPath, cName):
+def importWeight(fPath, cName):
 
     filename = os.path.basename(fPath)
     path = os.path.dirname(fPath)
 
-    cmds.deformerWeights(filename, path=path, vc=True, deformer='skinCluster1', export=True)
+    with open(fPath) as f:
+        data = json.load(f)
+
+    # latest weights
+    weightpath = os.path.join(path, 'weightdata')
+    wfversion = len(os.listdir(weightpath))
+    weightfolder = os.path.join(weightpath, 'weight_v%s'%(str(wfversion).zfill(3)))
+
+    for deformer in data:
+
+        if not cmds.objExists(deformer): continue
+
+        weightfiles = os.listdir(weightfolder)
+        if '%s.xml'%deformer not in weightfiles: continue
+        weightfile = '%s/%s.xml'%(weightfolder, deformer)
+
+
+        #tree = et.parse(weightfile)
+        #root = tree.getroot()
+
+        try:
+            cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+                             m='barycentric', deformer=deformer, im=True)
+        except: pass
+
+        '''
+        if not root.find('weights'):
+
+            shape = root.find('weights').attrib['shape']
+
+            if not cmds.objExists(shape): continue
+
+            if int(root.find('weights').attrib['size']) == int(cmds.polyEvaluate(shape, v=True)):
+                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+                         m='index', deformer=deformer, im=True)
+            else:
+                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+                         m='barycentric', deformer=deformer, im=True)
+        '''
 
 def importSet(fPath, cName):
 
@@ -170,6 +209,8 @@ def exportData(data, path, dtype, stage, cid, ext='json'):
     logger.info("Exported %s %s version %d"%(stage, dtype.title(), version))
     logger.info("Export Path: '%s'"%exportPath)
 
+    return exportPath
+
 
 def exportAttribute(nodes, path, dtype, stage, cId, name):
 
@@ -247,6 +288,30 @@ def exportTransform(nodes, path, dtype, stage, cId, name):
         data.update({node:{'parent':parent, 'translate':translate, 'rotate':rotate, 'scale':scale}})
 
     exportData(data, path, dtype, stage, cId)
+
+def exportWeight(nodes, path, dtype, stage, cId, name):
+
+    data = {}
+    for node in nodes:
+        if not cmds.objExists(node): continue
+
+        deformer_type = cmds.objectType(node)
+
+        data.update({node:deformer_type})
+
+    exportpath = exportData(data, path, dtype, stage, cId)
+    weightfolder = os.path.join(exportpath, 'weightdata')
+
+    if not os.path.isdir(weightfolder): os.mkdir(weightfolder)
+    wfversion = len(os.listdir(weightfolder)) + 1
+
+    weightfolder = os.path.join(weightfolder, 'weight_v%s'%(str(wfversion).zfill(3)))
+    os.mkdir(weightfolder)
+
+    for deformer in data.keys():
+        print deformer, weightfolder
+        cmds.deformerWeights(deformer + '.xml', path=weightfolder, vc=True,
+                             deformer=deformer, export=True)
 
 def exportHierarchy(nodes, path, dtype, stage, cId, name):
 

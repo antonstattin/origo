@@ -141,7 +141,7 @@ def elbowLock(polevector, posA, posB, startjnt, midjnt, name="elbowLock", gotStr
     cmds.connectAttr(divB + ".outputX", conditionB + ".colorIfTrueR")
 
     blender = cmds.createNode("blendColors", n="_{}_lock_BLENDER".format(name))
-    
+
     cmds.addAttr(polevector, ln='lock', max=1.0, min=0.0, dv=0.0)
     cmds.setAttr(polevector + '.lock', cb=True)
     cmds.connectAttr(polevector + '.lock', blender + ".blender")

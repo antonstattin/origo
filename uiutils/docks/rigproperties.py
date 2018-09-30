@@ -8,7 +8,6 @@ import os
 from subprocess import call
 
 import origo.uiutils.widgets.propertywidgets as propertywidgets
-reload(propertywidgets)
 
 class RigPropertiesPanel(QtWidgets.QWidget):
     """ This Panel is the main widget in RigPropertiesDock

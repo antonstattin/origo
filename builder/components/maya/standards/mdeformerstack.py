@@ -27,7 +27,7 @@ class MDeformerStack(mrig.MRigComponent):
     def getDeformTree(self):
 
         deformtree = self.get('deformertree')
-        if type(deformtree) == unicode:
+        if type(deformtree) == unicode or type(deformtree) == str:
             deformtree = eval(deformtree)
 
         return deformtree
@@ -38,6 +38,8 @@ class MDeformerStack(mrig.MRigComponent):
 
         allsets = []
         deformtree = self.getDeformTree()
+
+        print deformtree
 
         # if any targetType, check if sets exists else create
         for nodename in deformtree.keys():
@@ -64,7 +66,6 @@ class MDeformerStack(mrig.MRigComponent):
         # register sets
         objectsets = self.get('createdSets')
         self.reg('set', objectsets)
-
 
     def post(self):
         super(MDeformerStack, self).post()
@@ -140,11 +141,13 @@ class MDeformerStack(mrig.MRigComponent):
 
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
-            cmds.skinCluster(allJoints, node, bindMethod=0, n="%s%d_SKC"%(fulldeformername, e))
+            skc = cmds.skinCluster(allJoints, node, bindMethod=0, n="%s%d_SKC"%(fulldeformername, e))
+            self.reg('weight', skc)
 
     def addDeltaMush(self, nodes, deformerName, deformerSet):
         fulldeformername = '_%s%s'%(self.get('name'), deformerName.title())
 
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
-            cmds.deltaMush(node, n="%s%d_MUSH"%(fulldeformername, e))
+            dm = cmds.deltaMush(node, n="%s%d_MUSH"%(fulldeformername, e))
+            self.reg('weight', dm)
