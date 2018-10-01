@@ -296,7 +296,6 @@ def exportWeight(nodes, path, dtype, stage, cId, name):
         if not cmds.objExists(node): continue
 
         deformer_type = cmds.objectType(node)
-
         data.update({node:deformer_type})
 
     exportpath = exportData(data, path, dtype, stage, cId)
@@ -309,7 +308,6 @@ def exportWeight(nodes, path, dtype, stage, cId, name):
     os.mkdir(weightfolder)
 
     for deformer in data.keys():
-        print deformer, weightfolder
         cmds.deformerWeights(deformer + '.xml', path=weightfolder, vc=True,
                              deformer=deformer, export=True)
 
