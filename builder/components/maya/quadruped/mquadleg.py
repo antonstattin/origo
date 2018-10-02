@@ -170,8 +170,6 @@ class MQuadLeg(manimrig.MAnimRigComponent):
                                skeletondata[2], legPv['offsetgroups'][0], 3.0)
 
 
-
-
         ikfkData = mlimb.ikfk(skeletondata[:3], legPv['ctl'], cName + 'IkFK')
 
         cmds.connectAttr(ikfkData['blend'], fkA['offsetgroups'][0] + '.v')

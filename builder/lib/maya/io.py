@@ -236,8 +236,8 @@ def exportShape(nodes, path, dtype, stage, cId, name):
     for node in nodes:
         if not cmds.objExists(node): continue
 
-        shapes = cmds.listRelatives(transform, shapes=True)
-        if not len(shapes): shapes = [transform]
+        shapes = cmds.listRelatives(node, shapes=True)
+        if not len(shapes): shapes = [node]
 
         for shape in shapes:
             position = []

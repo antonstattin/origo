@@ -344,6 +344,10 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		"""
 
 		controls = self.get('animcontrols')
+		if not isinstance(controls, list):
+			controls = []
+
+
 		controlprefix = self.get('name')
 
 		# query arguments
@@ -385,6 +389,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		# create control
 		controlname = '{}{}'.format(controlprefix, name)
 		ctl = cmds.group(em=True, n='%s_CTL'%controlname)
+
 		controls.append(ctl)
 
 
@@ -406,6 +411,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		# set color
 		cmds.setAttr(ctl + '.overrideEnabled', True)
 		cmds.setAttr(ctl + '.overrideColor', color)
+		cmds.setAttr(ctl + ".rotateOrder", rotateOrder)
 
 		if offsets < 1: offsets = 1
 
@@ -435,6 +441,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 			cmds.setAttr(offsetctl + '.overrideEnabled', True)
 			cmds.setAttr(offsetctl + '.overrideColor', secondaryColor)
+			cmds.setAttr(offsetctl + ".rotateOrder", rotateOrder)
 
 			if len(offsetctls):
 				cmds.parent(offsetctl, offsetctls[len(offsetctls)-1])
