@@ -13,6 +13,7 @@ class MLocalJaw(manimrig.MAnimRigComponent):
     def __init__(self, parent=None):
         super(MLocalJaw, self).__init__(parent)
 
+        self.add('mirrorskeleton', False, public=False, valuetype=bool)
         self.add('jawcollision', True, public=True, nicename='Jaw Collision',
                  valuetype=bool, icon=':/collisionEvents.png')
 

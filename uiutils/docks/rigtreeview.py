@@ -15,6 +15,13 @@ class RigTreeView(QtWidgets.QTreeView):
 		super(RigTreeView, self).__init__(parent)
 
 		self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+		self.setDragDropMode(self.InternalMove);
+
+	def dragEnterEvent(self, e):
+		super(RigTreeView, self).dragEnterEvent(e)
+
+		if e.mimeData().hasFormat('text/plain'):
+			e.acceptProposedAction()
 
 	def keyPressEvent(self, e):
 		"""

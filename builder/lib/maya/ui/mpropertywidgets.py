@@ -11,6 +11,55 @@ import maya.cmds as cmds
 
 logger = logging.getLogger('Origo')
 
+class MRigSelectionProperty(propertywidgets.AbstractPropertyWidget):
+    def __init__(self, name, value, **kwarg):
+        super(MRigSelectionProperty, self).__init__()
+
+        iconarg = kwarg.get('icon', ':/build.png')
+        nicenamearg = kwarg.get('nicename', name)
+
+        # add labels
+        self.pixmap = QtGui.QPixmap(iconarg)
+        self.pixmap = self.pixmap.scaledToWidth(20, QtCore.Qt.SmoothTransformation)
+        self.icon = QtWidgets.QLabel()
+        self.icon.setPixmap(self.pixmap)
+        self.label = QtWidgets.QLabel(nicenamearg)
+
+        self.lineEdit = QtWidgets.QLineEdit()
+        self.lineEdit.setPlaceholderText('Geo Edges')
+        self.lineEdit.setText(str(value))
+        self.lineEdit.setReadOnly(True)
+
+        self.addbtn = QtWidgets.QPushButton('Add Selection')
+        self.addbtn.setIcon(QtGui.QIcon(':/selectByObject.png'))
+        self.addbtn.clicked.connect(self.addSelection)
+
+        self.layout().addWidget(self.icon)
+        self.layout().addWidget(self.label)
+        self.layout().addWidget(self.lineEdit)
+        self.layout().addWidget(self.addbtn)
+
+
+    def addSelection(self):
+        selection = cmds.ls(sl=True, fl=True)
+        if not selection: return
+
+        self.lineEdit.setText(str(selection))
+        self.submit()
+
+    def submit(self, *arg):
+        self.doSubmit.emit()
+
+    def setValue(self, val): return
+
+    def getValue(self):
+        return self.lineEdit.text()
+
+    def widget(self):
+        return self.lineEdit
+
+    valueProperty = QtCore.Property(str, getValue, setValue)
+
 class MRigDeformerStackPropertyTree(QtWidgets.QTreeWidget):
 
     enterPressed = QtCore.Signal()
@@ -46,9 +95,6 @@ class MRigDeformerStackPropertyTree(QtWidgets.QTreeWidget):
 
         if e.key() == QtCore.Qt.Key_Return:
             self.enterPressed.emit()
-
-
-
 
 class MRigDeformerStackProperty(propertywidgets.AbstractPropertyWidget):
     def __init__(self, name, value, **kwarg):

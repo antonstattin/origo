@@ -134,7 +134,6 @@ class RigModel(QtCore.QAbstractItemModel):
 	def insertRows(self, row, count, parentIndex):
 		self.beginInsertRows(parentIndex, row, row+count-1)
 		self.endInsertRows()
-		self.dataChanged.emit( parentIndex, parentIndex )
 		return True
 
 	def removeRows(self, row, count, parentIndex):

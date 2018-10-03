@@ -244,11 +244,11 @@ def exportShape(nodes, path, dtype, stage, cId, name):
             for cv in cmds.ls(shape + ".cv[*]", fl=True):
                 cvpos = cmds.xform(cv, t=True, q=True)
 
-                if name in cv: cv = node.replace(name, '$NAME::')
+                if name in cv: cv = cv.replace(name, '$NAME::')
 
                 position.append([cv, cvpos])
 
-            if name in shape: shape = node.replace(name, '$NAME::')
+            if name in shape: shape = shape.replace(name, '$NAME::')
 
             data.update({shape:position})
 

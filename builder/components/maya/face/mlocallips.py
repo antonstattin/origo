@@ -11,16 +11,24 @@ class MLocalLips(manimrig.MAnimRigComponent):
     def __init__(self, parent=None):
         super(MLocalLips, self).__init__(parent)
 
-        # generate up curve
+        self.add('mirrorskeleton', False, public=False, valuetype=bool)
 
-        # generate low curve
+        # upper lip
+        self.add('upperLip', '', public=True, ui='origo.builder.lib.'\
+                 'maya.ui.mpropertywidgets.MRigSelectionProperty', nicename='Upper Lip',
+                  icon=':/curveEP.png')
 
+        # lower lip
+        self.add('lowerLip', '', public=True, ui='origo.builder.lib.'\
+                 'maya.ui.mpropertywidgets.MRigSelectionProperty', nicename='Lower Lip',
+                  icon=':/curveEP.png')
 
     def pre(self):
         super(MLocalLips, self).pre()
 
-        # build curves if any
+        upperLipPts = self.get('upperLip')
+        lowerLipPts = self.get('lowerLip')
 
+        
     def build(self):
         super(MLocalLips, self).build()
-        
