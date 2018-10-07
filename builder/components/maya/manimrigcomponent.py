@@ -195,6 +195,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 		skeleton_guides = self.get('skeleton_guides')
 
+		if not isinstance(skeleton_guides, list): return
+
 		for guide in skeleton_guides:
 			if cmds.objExists(guide):
 				cmds.setAttr(guide + ".v", 1)
@@ -211,6 +213,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		allJoints = []
 		skeleton_guides = self.get('skeleton_guides')
 		mirrorskeleton = self.get('mirrorskeleton')
+
+		if not isinstance(skeleton_guides, list): return
 
 		# create Joints
 		for guide in skeleton_guides:

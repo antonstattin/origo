@@ -39,7 +39,6 @@ class MDeformerStack(mrig.MRigComponent):
         allsets = []
         deformtree = self.getDeformTree()
 
-        print deformtree
 
         # if any targetType, check if sets exists else create
         for nodename in deformtree.keys():
@@ -128,8 +127,6 @@ class MDeformerStack(mrig.MRigComponent):
 
     def addSkinCluster(self, nodes, deformerName, deformerSet):
 
-        fulldeformername = '_%s%s'%(self.get('name'), deformerName.title())
-
         allJoints = []
         if cmds.objExists(deformerSet):
             if cmds.objectType(deformerSet) == 'objectSet':
@@ -141,7 +138,8 @@ class MDeformerStack(mrig.MRigComponent):
 
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
-            skc = cmds.skinCluster(allJoints, node, bindMethod=0, n="%s%d_SKC"%(fulldeformername, e))
+            skc = cmds.skinCluster(allJoints, node, bindMethod=0,
+                                   n="%s_%s_SKC"%(self.get('name'), node))
             self.reg('weight', skc)
 
     def addDeltaMush(self, nodes, deformerName, deformerSet):
@@ -149,5 +147,5 @@ class MDeformerStack(mrig.MRigComponent):
 
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
-            dm = cmds.deltaMush(node, n="%s%d_MUSH"%(fulldeformername, e))
+            dm = cmds.deltaMush(node, n="%s_%s_MUSH"%(self.get('name'), node))
             self.reg('weight', dm)

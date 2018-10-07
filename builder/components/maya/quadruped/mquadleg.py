@@ -194,13 +194,19 @@ class MQuadLeg(manimrig.MAnimRigComponent):
         cmds.delete(cmds.parentConstraint(inBankTransform, inPiv, mo=False))
         cmds.delete(cmds.parentConstraint(outBankTransform, outPiv, mo=False))
 
+        cmds.addAttr(legIk['ctl'], k=True, ln="__switch", nn="_", at="enum", en="Switch")
+        cmds.setAttr("{}.__switch".format(legIk['ctl']), l=True)
+        cmds.addAttr(legIk['ctl'], k=True, ln="IkFkSwitch", dv=0.0, min=0.0, max=10.0)
+        cmds.connectAttr(legIk['ctl'] + '.IkFkSwitch', ikfkData['blend'])
+
         cmds.parent(outPiv, inPiv)
         cmds.parent(inPiv, toePiv)
         cmds.parent(toePiv, heelPiv)
         cmds.parent(heelPiv, pivOffset)
+        cmds.makeIdentity(heelPiv, a=True)
+
         cmds.parent(pivOffset, legIk['root'])
         cmds.parent(rotIk['offsetgroups'][0], outPiv)
-
 
         # add polevector arrow for easier selection
         arrow = cmds.createNode("annotationShape")
@@ -310,7 +316,6 @@ class MQuadLeg(manimrig.MAnimRigComponent):
 
         cmds.connectAttr(pma + '.output3D', tarsal['offsetgroups'][1] + '.rotate')
 
-        #matrix.constraint(legIk['root'], tarsal['offsetgroups'][0], norotate=True)
         matrix.constraint(outPiv, tarsal['offsetgroups'][0], norotate=True)
 
 
@@ -334,6 +339,33 @@ class MQuadLeg(manimrig.MAnimRigComponent):
         cmds.parent(tarsaIKSCBuff, legIk['offsetgroups'][0])
         cmds.parent(tarsalIk[0], tarsaIKSCBuff)
 
+        cmds.addAttr(legIk['ctl'], k=True, ln="__foot", nn="_", at="enum", en="Foot")
+        cmds.setAttr("{}.__foot".format(legIk['ctl']), l=True)
+        cmds.addAttr(legIk['ctl'], k=True, ln="roll", dv=0.0)
+        cmds.addAttr(legIk['ctl'], k=True, ln="bank", dv=0.0)
+
+
+        # Setup roll
+        roll_clamp = cmds.createNode("clamp", n="_%sRoll_CLAMP"%cName)
+        cmds.setAttr(roll_clamp + ".maxR", 360)
+        cmds.setAttr(roll_clamp + ".minG", -360)
+
+        cmds.connectAttr(legIk['ctl'] + ".roll", roll_clamp + ".inputR")
+        cmds.connectAttr(legIk['ctl'] + ".roll", roll_clamp + ".inputG")
+
+        cmds.connectAttr(roll_clamp + ".outputR", toePiv + ".rotateX")
+        cmds.connectAttr(roll_clamp + ".outputG", heelPiv + ".rotateX")
+
+        # Setup Bank
+        bank_clamp = cmds.createNode("clamp", n="_%sBank_CLAMP"%cName)
+        cmds.setAttr(bank_clamp + ".minR", -360)
+        cmds.setAttr(bank_clamp + ".maxG", 360)
+
+        cmds.connectAttr(legIk['ctl'] + ".bank", bank_clamp + ".inputR")
+        cmds.connectAttr(legIk['ctl'] + ".bank", bank_clamp + ".inputG")
+
+        cmds.connectAttr(bank_clamp + ".outputR", inPiv + ".rotateZ")
+        cmds.connectAttr(bank_clamp + ".outputG", outPiv + ".rotateZ")
 
         decomp, rotwtmat = matrix.constraint(rotIk['root'], fkD['root'], toeRotation,
                                              n=cName + 'ToeRotBlend_WMTX')

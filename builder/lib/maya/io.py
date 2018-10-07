@@ -21,7 +21,7 @@ def importWeight(fPath, cName):
     weightfolder = os.path.join(weightpath, 'weight_v%s'%(str(wfversion).zfill(3)))
 
     for deformer in data:
-
+        print deformer
         if not cmds.objExists(deformer): continue
 
         weightfiles = os.listdir(weightfolder)
@@ -295,8 +295,15 @@ def exportWeight(nodes, path, dtype, stage, cId, name):
     for node in nodes:
         if not cmds.objExists(node): continue
 
+        geo = []
+        if cmds.attributeQuery('outputGeometry', node=node, exists=True):
+            connections = cmds.listConnections('%s.outputGeometry'%node, plugs=True)
+
+            for attr in connections:
+                geo.append(attr.split('.')[0])
+        
         deformer_type = cmds.objectType(node)
-        data.update({node:deformer_type})
+        data.update({node:{'type':deformer_type, 'geo':geo}})
 
     exportpath = exportData(data, path, dtype, stage, cId)
     weightfolder = os.path.join(exportpath, 'weightdata')
