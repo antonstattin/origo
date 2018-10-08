@@ -178,7 +178,7 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 		self.set('icon', ':/joint.svg')
 		self.add('mirrorskeleton', False, public=True, nicename='Skeleton Flip X-axis (Mirror Behavior)',
-				  valuetype=bool, icon=':/mirrorSkinWeight.png')
+				  valuetype=bool, icon=':/polyMirrorGeometry.png')
 
 		self._rootguide = None
 
