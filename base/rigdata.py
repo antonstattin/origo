@@ -201,8 +201,14 @@ class RigData(object):
 		"""
 
 		keys = self._dataDict.keys()
-		if key in keys: self._setData(keys.index(key), value)
-		else: logger.debug("Can't find key: {} in data".format(key))
+		if key in keys:
+			self._setData(keys.index(key), value)
+			return True
+		else:
+
+			logger.debug("Can't find key: {} in data".format(key))
+			return False
+
 
 	def getKeyIndex(self, key):
 		""" returns the index of the key, this is usefull for the models

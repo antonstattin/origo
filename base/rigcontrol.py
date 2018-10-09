@@ -283,7 +283,14 @@ class RigControl(object):
 				value = element.attrib[key]
 				try: value = eval(value)
 				except: pass
-				rigobj.set(key, value)
+				exists = rigobj.set(key, value)
+
+				# if we can't set the value because it's not a
+				# attribute that's been declare in the init
+				# add the new value
+				if not exists: rigobj.add(key, value)
+
+
 
 			self._rigFromXmlRecursive(element, rigobj)
 
@@ -306,6 +313,11 @@ class RigControl(object):
 				value = child.attrib[key]
 				try: value = eval(value)
 				except: pass
-				rigobj.set(key, value)
+				exists = rigobj.set(key, value)
+
+				# if we can't set the value because it's not a
+				# attribute that's been declare in the init
+				# add the new value
+				if not exists: rigobj.add(key, value)
 
 			self._rigFromXmlRecursive(child, rigobj)

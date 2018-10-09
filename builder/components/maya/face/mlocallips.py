@@ -8,8 +8,6 @@ import os
 
 import origo.builder.lib.maya.mcurves as mcurves
 
-
-
 class MLocalLips(manimrig.MAnimRigComponent):
 
     def __init__(self, parent=None):
@@ -191,6 +189,8 @@ class MLocalLips(manimrig.MAnimRigComponent):
             cmds.parent(jntDriver, crvDriven)
             jnt = cmds.joint(n='%sLower%d_JNT'%(cName, e))
             cmds.xform(jntDriver, t=pos, ws=True)
+
+
 
             joints.append(jnt)
 
