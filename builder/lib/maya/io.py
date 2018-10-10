@@ -20,37 +20,30 @@ def importWeight(fPath, cName):
     wfversion = len(os.listdir(weightpath))
     weightfolder = os.path.join(weightpath, 'weight_v%s'%(str(wfversion).zfill(3)))
 
-    for deformer in data:
-        print deformer
+    for deformer in data.keys():
+
+        points = data[deformer]['points']
+        objtype = data[deformer]['objtype']
+        geo = data[deformer]['geo']
+
         if not cmds.objExists(deformer): continue
 
         weightfiles = os.listdir(weightfolder)
         if '%s.xml'%deformer not in weightfiles: continue
         weightfile = '%s/%s.xml'%(weightfolder, deformer)
 
+        current_points = 0
+        if cmds.objectType(geo) == "mesh":
+            current_points = cmds.polyEvaluate(geo, v=True)
+        elif cmds.objectType(geo) == "nurbsCurve":
+            current_points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
 
-        #tree = et.parse(weightfile)
-        #root = tree.getroot()
-
-        try:
+        if points == current_points:
+            cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+                             m='index', deformer=deformer, im=True)
+        else:
             cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
                              m='barycentric', deformer=deformer, im=True)
-        except: pass
-
-        '''
-        if not root.find('weights'):
-
-            shape = root.find('weights').attrib['shape']
-
-            if not cmds.objExists(shape): continue
-
-            if int(root.find('weights').attrib['size']) == int(cmds.polyEvaluate(shape, v=True)):
-                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
-                         m='index', deformer=deformer, im=True)
-            else:
-                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
-                         m='barycentric', deformer=deformer, im=True)
-        '''
 
 def importSet(fPath, cName):
 
@@ -301,9 +294,20 @@ def exportWeight(nodes, path, dtype, stage, cId, name):
 
             for attr in connections:
                 geo.append(attr.split('.')[0])
-        
+
         deformer_type = cmds.objectType(node)
-        data.update({node:{'type':deformer_type, 'geo':geo}})
+
+        points = 1
+        if cmds.objectType(geo) == "mesh":
+            points = cmds.polyEvaluate(geo, v=True)
+
+        elif cmds.objectType(geo) == "nurbsCurve":
+            points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
+
+        objtype = cmds.objectType(geo)
+
+        data.update({node:{'deformtype':deformer_type, 'geo':geo,
+                           'points':points, 'objtype':objtype}})
 
     exportpath = exportData(data, path, dtype, stage, cId)
     weightfolder = os.path.join(exportpath, 'weightdata')

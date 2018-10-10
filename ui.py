@@ -13,7 +13,7 @@ from uiutils import icons
 from base import rigcontrol, rigmodel, rigdata
 
 import uiutils.signals.mainwindowsignals as signals
-from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj
+from uiutils.docks import rigtreeview, rigproperties, rigxml, rigeditproj, rigaddcomponent
 from uiutils.dialogs import newprojectdialog
 reload(signals)
 reload(rigmodel)
@@ -21,6 +21,7 @@ reload(rigcontrol)
 reload(rigtreeview)
 reload(rigproperties)
 reload(rigmodel)
+reload(rigaddcomponent)
 
 # setup logger
 logger = logging.getLogger("Origo")
@@ -145,10 +146,14 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
         self._winOpenProjectEditAction = QtWidgets.QAction("Show Project Edit", self)
         self._winOpenProjectEditAction.setStatusTip("Show Project Edit Window")
 
+        self._winOpenAddComponentAction = QtWidgets.QAction("Show Available Components", self)
+        self._winOpenAddComponentAction.setStatusTip("Show Available Component Window")
+
         self.winMenu.addAction(self._winOpenCPWinAction)
         self.winMenu.addAction(self._winOpenXmlWinAction)
         self.winMenu.addAction(self._winOpenBuildShelfAction)
         self.winMenu.addAction(self._winOpenProjectEditAction)
+        self.winMenu.addAction(self._winOpenAddComponentAction)
         self.menuBar().addMenu(self.winMenu)
 
     def _buildToolBar(self):
@@ -227,6 +232,18 @@ class UI(QtWidgets.QMainWindow, signals.MainWindowSignals):
 
         self.addDockWidget(QtCore.Qt.TopDockWidgetArea,
                            self.rigXmlDock)
+
+
+        self.rigAddComponentDock = QtWidgets.QDockWidget('Add Components', self)
+        self.rigAddComponent = rigaddcomponent.RigAddComponentPanel(self)
+        self.rigAddComponentDock.setWidget(self.rigAddComponent)
+
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
+                           self.rigAddComponentDock)
+
+
+
 
     def changeStyle(self, qssfile):
         """ change to custom theme by reading a .qss file

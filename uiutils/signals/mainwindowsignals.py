@@ -31,6 +31,7 @@ class MainWindowSignals(object):
 		self._winOpenXmlWinAction.triggered.connect(self._winOpenXmlWin)
 		self._winOpenBuildShelfAction.triggered.connect(self._winBuildShelfFnc)
 		self._winOpenProjectEditAction.triggered.connect(self._winProjEditFnc)
+		self._winOpenAddComponentAction.triggered.connect(self._winAddComponentFnc)
 
 		# TOOLBAR
 
@@ -90,6 +91,10 @@ class MainWindowSignals(object):
 		if self.rigEditProjDock.isVisible(): return
 		self.rigEditProjDock.setVisible(True)
 		self.updateProjectEditWindow()
+
+	def _winAddComponentFnc(self):
+		if self.rigAddComponentDock.isVisible(): return
+		self.rigAddComponentDock.setVisible(True)
 
 # -------------------  TOOLBAR  ------------------------ #
 

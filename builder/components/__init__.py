@@ -37,12 +37,22 @@ def getAvailableComponents():
 
     return components
 
-
-def getBuildClass(mod):
+def getDocFromMod(mod):
 
     modname = mod.rpartition('.')[2]
     modobj = importlib.import_module(mod)
 
+    return str(modobj.__doc__)
+
+def getBuildClassFromMod(mod):
+
+    modname = mod.rpartition('.')[2]
+    modobj = importlib.import_module(mod)
+
+    retName = None
     for name, obj in inspect.getmembers(modobj):
         if inspect.isclass(obj):
-            print name
+            if modname.lower() == str(obj.__name__).lower():
+                retName = str(obj.__name__)
+
+    return retName

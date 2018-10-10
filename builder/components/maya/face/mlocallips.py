@@ -7,6 +7,7 @@ import maya.mel as mel
 import os
 
 import origo.builder.lib.maya.mcurves as mcurves
+reload(mcurves)
 
 class MLocalLips(manimrig.MAnimRigComponent):
 
@@ -36,7 +37,17 @@ class MLocalLips(manimrig.MAnimRigComponent):
         upperLipEdges = self.get('upperLip')
         lowerLipEdges = self.get('lowerLip')
 
+
+        if not upperLipEdges: return
+        if not lowerLipEdges: return
+
         modgrp = self.getModGroup()
+
+        if not isinstance(upperLipEdges, list):
+            upperLipEdges = eval(upperLipEdges)
+
+        if not isinstance(lowerLipEdges, list):
+            lowerLipEdges = eval(lowerLipEdges)
 
         upCrv = mcurves.curve_from_edges(upperLipEdges, cName + 'Upper_CRV')
         lowCrv = mcurves.curve_from_edges(lowerLipEdges, cName + 'Lower_CRV')
@@ -84,33 +95,77 @@ class MLocalLips(manimrig.MAnimRigComponent):
         params = [0.0, 0.05, 0.25, 0.5, 0.75, 0.95, 1.0]
         names = ['LeftCorner', 'LeftPinch', 'Left', 'Mid', 'Right', 'RightPinch', 'RightCorner']
 
-        upperdrivergrp = cmds.group(em=True, n=cName + 'UpperDrivers_GRP')
-        lowerdrivergrp = cmds.group(em=True, n=cName + 'LowerDrivers_GRP')
+        ctlDriverGrp = cmds.group(em=True, n=cName + 'CtlDrivers_GRP')
+        weightCurveGrp = cmds.group(em=True, n=cName + 'WeightCurve_GRP')
+
 
         cmds.parent([upperdrivergrp, lowerdrivergrp], modgrp)
 
+        # up curve
         for i, param in enumerate(params):
             side_name = names[i]
             cmds.setAttr(poci_up + '.parameter', param)
             cmds.setAttr(poci_low + '.parameter', param)
 
-            upperCls = cmds.spaceLocator(name='%sUpper%sCls_WN'%(cName, side_name))[0]
-            cmds.parent(upperCls, upperdrivergrp)
-            cmds.xform(upperCls, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
-            cmds.makeIdentity(upperCls, a=True)
-            cmds.setAttr(upperCls + '.v', 0)
+            # special case for corners
+            if i == 0 or i == (len(params)-1):
 
-            cmds.cluster('%s.cv[%d]'%(prox_upCrv, i), wn=[upperCls, upperCls],
-                         name='%s%s_CLS'%(cName, side_name))
+                cornerCls = cmds.spaceLocator(name='%s%sCls_WN'%(cName, side_name))[0]
+                cmds.xform(cornerCls, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
+                cmds.parent(cornerCls, ctlDriverGrp)
+                cmds.makeIdentity(cornerCls, a=True)
+                cmds.setAttr(cornerCls + '.v', 0)
 
-            lowerCls = cmds.spaceLocator(name='%sLower%s_WN'%(cName, side_name))[0]
-            cmds.parent(lowerCls, lowerdrivergrp)
-            cmds.xform(lowerCls, t=cmds.getAttr(poci_low + '.result.position')[0], ws=True)
-            cmds.makeIdentity(lowerCls, a=True)
-            cmds.setAttr(lowerCls + '.v', 0)
+                cmds.cluster(['%s.cv[%d]'%(prox_lowCrv, i), '%s.cv[%d]'%(prox_upCrv, i)],
+                             wn=[upperCls, upperCls],
+                             name='%s%s_CLS'%(cName, side_name))
 
-            cmds.cluster('%s.cv[%d]'%(prox_lowCrv, i), wn=[lowerCls, lowerCls],
-                         name='%sLower%s_CLS'%(cName, side_name))
+                cornerWeightCls = cmds.group(name='%s%sWeightCls_WN'%(cName, side_name), em=True)
+                cmds.xform(cornerWeightCls, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
+                cmds.parent(cornerWeightCls, ctlDriverGrp)
+                cmds.makeIdentity(cornerWeightCls, a=True)
+                cmds.setAttr(cornerWeightCls + '.v', 0)
+
+                cmds.cluster(['%s.cv[%d]'%(prox_lowCrv, i), '%s.cv[%d]'%(prox_upCrv, i)],
+                             wn=[cornerWeightCls, cornerWeightCls],
+                             name='%sWeight%s_CLS'%(cName, side_name))
+            else:
+
+                upperCls = cmds.spaceLocator(name='%s%sUpperCls_WN'%(cName, side_name))[0]
+                cmds.xform(upperCls, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
+                cmds.parent(upperCls, ctlDriverGrp)
+                cmds.makeIdentity(upperCls, a=True)
+                cmds.setAttr(upperCls + '.v', 0)
+
+                lowerCls = cmds.spaceLocator(name='%s%sLowerCls_WN'%(cName, side_name))[0]
+                cmds.xform(lowerCls, t=cmds.getAttr(poci_low + '.result.position')[0], ws=True)
+                cmds.parent(lowerCls, ctlDriverGrp)
+                cmds.makeIdentity(lowerCls, a=True)
+                cmds.setAttr(lowerCls + '.v', 0)
+
+                cmds.cluster('%s.cv[%d]'%(prox_upCrv, i), wn=[upperCls, upperCls],
+                         name='%s%sUpper_CLS'%(cName, side_name))
+
+                cmds.cluster('%s.cv[%d]'%(prox_lowCrv, i), wn=[lowerCls, lowerCls],
+                         name='%s%sLower_CLS'%(cName, side_name))
+
+                upperWeightCls = cmds.group(name='%s%sUpperWeightCls_WN'%(cName, side_name), em=True)
+                cmds.xform(upperWeightCls, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
+                cmds.parent(upperWeightCls, ctlDriverGrp)
+                cmds.makeIdentity(upperWeightCls, a=True)
+                cmds.setAttr(upperWeightCls + '.v', 0)
+
+                lowerWeightCls = cmds.group(name='%s%sLowerWeightCls_WN'%(cName, side_name), em=True)
+                cmds.xform(lowerWeightCls, t=cmds.getAttr(poci_low + '.result.position')[0], ws=True)
+                cmds.parent(lowerWeightCls, ctlDriverGrp)
+                cmds.makeIdentity(lowerWeightCls, a=True)
+                cmds.setAttr(lowerWeightCls + '.v', 0)
+
+                cmds.cluster('%s.cv[%d]'%(prox_upCrv, i), wn=[upperCls, upperCls],
+                         name='%s%sUpper_CLS'%(cName, side_name))
+
+                cmds.cluster('%s.cv[%d]'%(prox_lowCrv, i), wn=[lowerCls, lowerCls],
+                         name='%s%sLower_CLS'%(cName, side_name))
 
         cmds.delete([poci_up, poci_low])
 
@@ -121,6 +176,16 @@ class MLocalLips(manimrig.MAnimRigComponent):
 
         cmds.setAttr(upCrv + '.v', 0)
         cmds.setAttr(lowCrv + '.v', 0)
+
+
+
+
+        #
+
+        # build joints on and between all controls
+
+
+
 
 
     def buildHighress(self, upCrv, lowCrv, upPrxyCrv, lowPrxyCrv):

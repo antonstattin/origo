@@ -77,6 +77,8 @@ def find_corners(edges):
 
 def curve_from_edges(edges, name="eye_CRV"):
     """ creates a curve from mesh """
+
+    print edges
     pm.select(clear=True)
     pm.select(edges)
     crv = pm.polyToCurve(ch=False, n=name, dg=1)
