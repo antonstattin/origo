@@ -73,27 +73,37 @@ class MainWindowSignals(object):
 # -------------------  WINDOW  ------------------------ #
 
 	def _winOpenXmlWin(self):
-		if self.rigXmlDock.isVisible(): return
+		if self.rigXmlDock.isVisible():
+			self.rigXmlDock.setFloating(False)
+			return
 		self.rigXmlDock.setVisible(True)
 
 		self.rigXmlDock.widget().updateXml(self._rigcontrol.rigToXml())
 
 	def _winOpenCPWin(self):
-		if self.rigPropertiesDock.isVisible(): return
+		if self.rigPropertiesDock.isVisible():
+			self.rigPropertiesDock.setFloating(False)
+			return
 		self.rigPropertiesDock.setVisible(True)
 
 
 	def _winBuildShelfFnc(self):
-		if self.buildShelf.isVisible(): return
+		if self.buildShelf.isVisible():
+			self.buildShelf.setFloating(False)
+			return
 		self.buildShelf.setVisible(True)
 
 	def _winProjEditFnc(self):
-		if self.rigEditProjDock.isVisible(): return
+		if self.rigEditProjDock.isVisible():
+			self.rigEditProjDock.setFloating(False)
+			return
 		self.rigEditProjDock.setVisible(True)
 		self.updateProjectEditWindow()
 
 	def _winAddComponentFnc(self):
-		if self.rigAddComponentDock.isVisible(): return
+		if self.rigAddComponentDock.isVisible():
+			self.rigAddComponentDock.setFloating(False)
+			return
 		self.rigAddComponentDock.setVisible(True)
 
 # -------------------  TOOLBAR  ------------------------ #

@@ -17,6 +17,7 @@ class MRigSelectionProperty(propertywidgets.AbstractPropertyWidget):
 
         iconarg = kwarg.get('icon', ':/build.png')
         nicenamearg = kwarg.get('nicename', name)
+        placeholdertextarg = kwarg.get('placeholdertext', 'Maya Nodes')
 
         # add labels
         self.pixmap = QtGui.QPixmap(iconarg)
@@ -26,7 +27,7 @@ class MRigSelectionProperty(propertywidgets.AbstractPropertyWidget):
         self.label = QtWidgets.QLabel(nicenamearg)
 
         self.lineEdit = QtWidgets.QLineEdit()
-        self.lineEdit.setPlaceholderText('Geo Edges')
+        self.lineEdit.setPlaceholderText(placeholdertextarg)
         self.lineEdit.setText(str(value))
         self.lineEdit.setReadOnly(True)
 

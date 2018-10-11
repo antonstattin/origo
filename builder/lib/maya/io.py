@@ -39,6 +39,7 @@ def importWeight(fPath, cName):
             current_points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
 
         if points == current_points:
+            print 'index'
             cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
                              m='index', deformer=deformer, im=True)
         else:

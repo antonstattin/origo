@@ -221,7 +221,6 @@ class MAnimRigComponent(mrigc.MRigComponent):
 			cmds.select(clear=True)
 			jnt = cmds.joint(name=guide.replace('_GUIDE', '_JNT'))
 
-
 			cmds.delete(cmds.parentConstraint(guide, jnt, mo=False))
 
 			cmds.makeIdentity(jnt, a=True)
