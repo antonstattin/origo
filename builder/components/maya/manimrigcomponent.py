@@ -409,7 +409,8 @@ class MAnimRigComponent(mrigc.MRigComponent):
 
 		# set line width
 		for shp in cmds.listRelatives(ctl, s=True):
-			cmds.setAttr(shp + '.lineWidth', linewidth)
+			try: cmds.setAttr(shp + '.lineWidth', linewidth)
+			except: pass
 
 		# set color
 		cmds.setAttr(ctl + '.overrideEnabled', True)
