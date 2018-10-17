@@ -37,6 +37,26 @@ class MLocalLips(manimrig.MAnimRigComponent):
                  'maya.ui.mpropertywidgets.MRigSelectionProperty', nicename='Jaw Joint',
                   icon=':/joint.svg', placeholdertext='Joint Name or guide')
 
+    def addConnectMirror(nodes, node, name='additivemirr', translate=True, rotate=False, scale=False):
+
+        print node
+        if translate:
+            pma = cmds.createNode('plusMinusAverage', n='_' + name + 'Translate_ADL')
+            mdl = cmds.createNode('multDoubleLinear', n='_' + name + 'TranslateMIRR_MDL')
+
+            for i, driver_node in enumerate(nodes):
+                cmds.connectAttr(driver_node + '.translate', '%s.input3D[%d]'%(pma, i))
+
+
+            cmds.connectAttr(pma + '.output3D.output3Dx', mdl + '.input1')
+            cmds.setAttr(mdl + '.input2', -1)
+
+            cmds.connectAttr(mdl + '.output', node + '.tx')
+            cmds.connectAttr(pma + '.output3D.output3Dy', node + '.ty')
+            cmds.connectAttr(pma + '.output3D.output3Dz', node + '.tz')
+
+
+
     def addConnect(self, nodes, node, name='additive', translate=True, rotate=False, scale=False):
 
 
@@ -73,21 +93,13 @@ class MLocalLips(manimrig.MAnimRigComponent):
         self.leftCorner = self.addGuide('LeftCorner', parent=self.mainmouth, position=[2,0,0], isSkeleton=False)
         self.rightCorner = self.addGuide('RightCorner', parent=self.mainmouth, position=[-2,0,0], isSkeleton=False)
 
-        self.leftUpPinch = self.addGuide('LeftUpperPinch', parent=self.leftCorner, position=[1.9,0.1,0], isSkeleton=False)
-        self.leftLowPinch = self.addGuide('LeftLowerPinch', parent=self.leftCorner, position=[1.9,-0.1,0], isSkeleton=False)
+        self.upperLipMid = self.addGuide('UpperLipMid', parent=self.mainmouth, position=[0,1,0], isSkeleton=False)
+        self.upperLipLeft = self.addGuide('UpperLipLeft', parent=self.mainmouth, position=[1,1,0], isSkeleton=False)
+        self.upperLipRight = self.addGuide('UpperLipRight', parent=self.mainmouth, position=[-1,1,0], isSkeleton=False)
 
-        self.rightUpPinch = self.addGuide('RightUpperPinch', parent=self.rightCorner, position=[-1.9,0.1,0], isSkeleton=False)
-        self.rightLowPinch = self.addGuide('RightLowerPinch', parent=self.rightCorner, position=[-1.9,-0.1,0], isSkeleton=False)
-
-        self.upperLip = self.addGuide('MainUpperLip', parent=self.mainmouth, position=[0,1,0], isSkeleton=False)
-        self.upperLipMid = self.addGuide('UpperLipMid', parent=self.upperLip, position=[0,1,0], isSkeleton=False)
-        self.upperLipLeft = self.addGuide('UpperLipLeft', parent=self.upperLip, position=[1,1,0], isSkeleton=False)
-        self.upperLipRight = self.addGuide('UpperLipRight', parent=self.upperLip, position=[-1,1,0], isSkeleton=False)
-
-        self.lowerLip = self.addGuide('MainLowerLip', parent=self.mainmouth, position=[0,-1,0], isSkeleton=False)
-        self.lowerLipMid = self.addGuide('LowerLipMid', parent=self.lowerLip, position=[0,-1,0], isSkeleton=False)
-        self.lowerLipLeft = self.addGuide('LowerLipLeft', parent=self.lowerLip, position=[1,-1,0], isSkeleton=False)
-        self.lowerLipRight = self.addGuide('LowerLipRight', parent=self.lowerLip, position=[-1,-1,0], isSkeleton=False)
+        self.lowerLipMid = self.addGuide('LowerLipMid', parent=self.mainmouth, position=[0,-1,0], isSkeleton=False)
+        self.lowerLipLeft = self.addGuide('LowerLipLeft', parent=self.mainmouth, position=[1,-1,0], isSkeleton=False)
+        self.lowerLipRight = self.addGuide('LowerLipRight', parent=self.mainmouth, position=[-1,-1,0], isSkeleton=False)
 
         self.mainmouth.build()
 
@@ -482,62 +494,121 @@ class MLocalLips(manimrig.MAnimRigComponent):
 
             self.addToSkeletonSet(joints)
 
-
         # create controls from guide positions
         guides = self.get('position_guides')
 
         mainMouthGuide = guides[0]
         cmds.setAttr(mainMouthGuide + '.v', 0)
 
+        mainMouth = self.addControl('MainMouth', extra=1, size=0.8, mt=guides[0], shp='joint')
 
-        mainMouth = self.addControl('MainMouth', extra=1, size=0.8, mt=guides[0], shp='square')
+        leftCorner = self.addControl('LeftCorner', extra=2, size=0.4, mt=guides[1], shp='joint', color=18)
+        rightCorner = self.addControl('RightCorner', extra=2, size=0.4, mt=guides[2], shp='joint', color=4)
 
-        leftCorner = self.addControl('LeftCorner', extra=1, size=0.4, mt=guides[1], shp='square', color=18)
-        leftUpperPinch = self.addControl('LeftUpperPinch', extra=1, size=0.4, mt=guides[2], shp='square', color=18)
-        leftLowerPinch = self.addControl('LeftLowerPinch', extra=1, size=0.4, mt=guides[3], shp='square', color=18)
+        cmds.setAttr(leftCorner['offsetgroups'][1] + '.sx', -1)
 
-        cmds.parent([leftUpperPinch['offsetgroups'][0], leftLowerPinch['offsetgroups'][0]], leftCorner['root'])
+        cmds.parent([leftCorner['offsetgroups'][0], rightCorner['offsetgroups'][0]], mainMouth['root'])
 
-        rightCorner = self.addControl('RightCorner', extra=1, size=0.4, mt=guides[4], shp='square', color=4)
-        rightUpperPinch = self.addControl('RightUpperPinch', extra=1, size=0.4, mt=guides[5], shp='square', color=4)
-        rightLowerPinch = self.addControl('RightLowerPinch', extra=1, size=0.4, mt=guides[6], shp='square', color=4)
-
-        cmds.parent([rightUpperPinch['offsetgroups'][0], rightLowerPinch['offsetgroups'][0]], rightCorner['root'])
-
-        upperLip = self.addControl('MainUpperLip', extra=1, size=0.8, mt=guides[7], shp='square')
-        lowerLip = self.addControl('MainLowerLip', extra=1, size=0.8, mt=guides[11], shp='square')
-
-        cmds.parent([leftCorner['offsetgroups'][0], rightCorner['offsetgroups'][0],
-                    upperLip['offsetgroups'][0], lowerLip['offsetgroups'][0]], mainMouth['root'])
-
-
-        upperMidLip = self.addControl('UpperLipMid', extra=1, size=0.4, mt=guides[8], shp='square', color=21)
-        upperLeftMidLip = self.addControl('UpperLipLeft', extra=2, size=0.4, mt=guides[9], shp='square', color=28)
-        upperRightMidLip = self.addControl('UpperLipRight', extra=2, size=0.4, mt=guides[10], shp='square', color=12)
+        upperMidLip = self.addControl('UpperLipMid', extra=2, size=0.4, mt=guides[3], shp='joint', color=21)
+        upperLeftMidLip = self.addControl('UpperLipLeft', extra=2, size=0.4, mt=guides[4], shp='joint', color=28)
+        upperRightMidLip = self.addControl('UpperLipRight', extra=2, size=0.4, mt=guides[5], shp='joint', color=12)
 
         cmds.parent([upperMidLip['offsetgroups'][0], upperLeftMidLip['offsetgroups'][0],
-                    upperRightMidLip['offsetgroups'][0]], upperLip['root'])
+                    upperRightMidLip['offsetgroups'][0]], mainMouth['root'])
 
-        lowerMidLip = self.addControl('LowerLipMid', extra=1, size=0.4, mt=guides[12], shp='square', color=21)
-        lowerLeftMidLip = self.addControl('LowerLipLeft', extra=2, size=0.4, mt=guides[13], shp='square', color=28)
-        lowerRightMidLip = self.addControl('LowerLipRight', extra=2, size=0.4, mt=guides[14], shp='square', color=12)
+        lowerMidLip = self.addControl('LowerLipMid', extra=2, size=0.4, mt=guides[6], shp='joint', color=21)
+        lowerLeftMidLip = self.addControl('LowerLipLeft', extra=2, size=0.4, mt=guides[7], shp='joint', color=28)
+        lowerRightMidLip = self.addControl('LowerLipRight', extra=2, size=0.4, mt=guides[8], shp='joint', color=12)
 
         cmds.parent([lowerMidLip['offsetgroups'][0], lowerLeftMidLip['offsetgroups'][0],
-                    lowerRightMidLip['offsetgroups'][0]], lowerLip['root'])
+                    lowerRightMidLip['offsetgroups'][0]], mainMouth['root'])
 
-        self.addConnect([mainMouth['ctl'], upperLip['ctl'], upperMidLip['ctl']], upper_ctl_drivers[2],'UpperMid', rotate=True)
-        self.addConnect([mainMouth['ctl'], upperLip['ctl'], upperLeftMidLip['ctl']], upper_ctl_drivers[1],'UpperLeft', rotate=True)
-        self.addConnect([mainMouth['ctl'], upperLip['ctl'], upperRightMidLip['ctl']], upper_ctl_drivers[3],'UpperRight', rotate=True)
+        matrix.constraint(leftCorner['ctl'], upperMidLip['ctl'], upperLeftMidLip['offsetgroups'][1])
+        matrix.constraint(rightCorner['ctl'], upperMidLip['ctl'], upperRightMidLip['offsetgroups'][1])
 
-        self.addConnect([mainMouth['ctl'], lowerLip['ctl'], lowerMidLip['ctl']], lower_ctl_drivers[2],'UpperMid', rotate=True)
-        self.addConnect([mainMouth['ctl'], lowerLip['ctl'], lowerLeftMidLip['ctl']], lower_ctl_drivers[1],'UpperLeft', rotate=True)
-        self.addConnect([mainMouth['ctl'], lowerLip['ctl'], lowerRightMidLip['ctl']], lower_ctl_drivers[3],'UpperRight', rotate=True)
+        matrix.constraint(leftCorner['ctl'], lowerMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1])
+        matrix.constraint(rightCorner['ctl'], lowerMidLip['ctl'], lowerRightMidLip['offsetgroups'][1])
 
-        self.addConnect([mainMouth['ctl'], leftCorner['ctl']], corner_ctl_drivers[0], 'LeftCorner', rotate=True)
-        self.addConnect([mainMouth['ctl'], rightCorner['ctl']], corner_ctl_drivers[1], 'RightCorner', rotate=True)
+        cmds.addAttr(modgrp, ln='mouthOut', min=0.0, max=5.0, dv=0.25)
+        cmds.setAttr("%s.mouthOut"%(modgrp), cb=True)
 
-        self.addConnect([mainMouth['ctl'], leftCorner['ctl'], leftUpperPinch['ctl']], upper_ctl_drivers[0], 'LeftUpperPinch', rotate=True)
-        self.addConnect([mainMouth['ctl'], leftCorner['ctl'], leftLowerPinch['ctl']], lower_ctl_drivers[0], 'LeftLowerPinch', rotate=True)
+        tightMouthOutClamp = cmds.createNode('clamp', n='_tightMouthOut_CLAMP')
+        tightMouthOutMDL = cmds.createNode('multDoubleLinear', n='_tightMouthOut_MDL')
+        tightMouthOutNEG = cmds.createNode('multDoubleLinear', n='_tightMouthOutNEG_MDL')
+        tightMouthOutADL = cmds.createNode('addDoubleLinear', n='_tightMouthOut_ADL')
 
-        self.addConnect([mainMouth['ctl'], rightCorner['ctl'], rightUpperPinch['ctl']], upper_ctl_drivers[4], 'RightUpperPinch', rotate=True)
-        self.addConnect([mainMouth['ctl'], rightCorner['ctl'], rightLowerPinch['ctl']], lower_ctl_drivers[4], 'RightLowerPinch', rotate=True)
+        cmds.setAttr(tightMouthOutNEG + '.input2', -1)
+        cmds.connectAttr(leftCorner['ctl'] + '.tx', tightMouthOutNEG + '.input1')
+        cmds.connectAttr(tightMouthOutNEG + '.output', tightMouthOutADL + '.input1')
+        cmds.connectAttr(rightCorner['ctl'] + '.tx', tightMouthOutADL + '.input2')
+
+        cmds.connectAttr(tightMouthOutADL + '.output', tightMouthOutClamp + '.inputR')
+        cmds.setAttr(tightMouthOutClamp + " .maxR", 5.0)
+
+        cmds.connectAttr(tightMouthOutClamp + '.output.outputR', tightMouthOutMDL + '.input1')
+        cmds.connectAttr(modgrp + '.mouthOut', tightMouthOutMDL + '.input2')
+
+        cmds.connectAttr(tightMouthOutMDL + '.output', upperMidLip['offsetgroups'][1] + '.tz')
+        cmds.connectAttr(tightMouthOutMDL + '.output', lowerMidLip['offsetgroups'][1] + '.tz')
+
+        self.addConnect([mainMouth['ctl'], upperMidLip['ctl'], upperMidLip['offsetgroups'][1]], upper_ctl_drivers[2], 'UpperMid')
+        self.addConnect([mainMouth['ctl'], lowerMidLip['ctl'], lowerMidLip['offsetgroups'][1]], lower_ctl_drivers[2], 'LowerMid')
+
+        self.addConnect([mainMouth['ctl'], upperLeftMidLip['ctl'], upperLeftMidLip['offsetgroups'][1]], upper_ctl_drivers[1],'UpperLeft')
+        self.addConnect([mainMouth['ctl'], upperRightMidLip['ctl'], upperRightMidLip['offsetgroups'][1]], upper_ctl_drivers[3],'UpperRight')
+
+        self.addConnect([mainMouth['ctl'], lowerLeftMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1]], lower_ctl_drivers[1],'UpperLeft')
+        self.addConnect([mainMouth['ctl'], lowerRightMidLip['ctl'], lowerRightMidLip['offsetgroups'][1]], lower_ctl_drivers[3],'UpperRight')
+
+        print corner_ctl_drivers
+        self.addConnectMirror([mainMouth['ctl'], leftCorner['ctl']], corner_ctl_drivers[0], 'LeftCorner')
+        self.addConnect([mainMouth['ctl'], rightCorner['ctl']], corner_ctl_drivers[1], 'RightCorner')
+
+        #self.addConnect([mainMouth['ctl'], leftUpperPinch['ctl']], upper_ctl_drivers[0], 'LeftUpperPinch')
+        #self.addConnect([mainMouth['ctl'], leftLowerPinch['ctl']], lower_ctl_drivers[0], 'LeftLowerPinch')
+
+        #self.addConnect([mainMouth['ctl'], rightUpperPinch['ctl']], upper_ctl_drivers[4], 'RightUpperPinch')
+        #self.addConnect([mainMouth['ctl'], rightLowerPinch['ctl']], lower_ctl_drivers[4], 'RightLowerPinch')
+
+        # SETUP PINCH!
+        for i, name in enumerate(['left', 'right']):
+
+            pma = cmds.createNode('plusMinusAverage', n='_%sPinchTranslate_ADL'%name)
+
+            for e, driver_node in enumerate([mainMouth['ctl'], [leftCorner['ctl'], rightCorner['ctl']][i]]):
+                cmds.connectAttr(driver_node + '.translate', '%s.input3D[%d]'%(pma, e))
+
+            pinchUpperADL = cmds.createNode('addDoubleLinear', n='_%sPinchUpper_ADL'%name)
+            pinchLowerADL = cmds.createNode('addDoubleLinear', n='_%sPinchLower_ADL'%name)
+
+            pinchUpperMDL = cmds.createNode('multDoubleLinear', n='_%sPinchUpper_MDL'%name)
+            pinchLowerMDL = cmds.createNode('multDoubleLinear', n='_%sPinchLower_MDL'%name)
+
+            cmds.addAttr([leftCorner['ctl'], rightCorner['ctl']][i], ln='upperPinch', dv=0.0)
+            cmds.setAttr("%s.upperPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), cb=True, k=True)
+            cmds.setAttr("%s.upperPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), k=True)
+
+            cmds.addAttr([leftCorner['ctl'], rightCorner['ctl']][i], ln='lowerPinch', dv=0.0)
+            cmds.setAttr("%s.lowerPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), cb=True)
+            cmds.setAttr("%s.lowerPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), k=True)
+
+            cmds.connectAttr('%s.lowerPinch'%[leftCorner['ctl'], rightCorner['ctl']][i], pinchLowerMDL + '.input1')
+            cmds.connectAttr('%s.upperPinch'%[leftCorner['ctl'], rightCorner['ctl']][i], pinchUpperMDL + '.input1')
+
+            cmds.setAttr(pinchUpperMDL + '.input2', 0.1)
+            cmds.setAttr(pinchLowerMDL + '.input2', -0.1)
+
+            cmds.connectAttr(pma + '.output3D.output3Dx', [upper_ctl_drivers[0], upper_ctl_drivers[4]][i] + '.tx')
+            cmds.connectAttr(pma + '.output3D.output3Dx', [lower_ctl_drivers[0], lower_ctl_drivers[4]][i] + '.tx')
+
+            cmds.connectAttr(pma + '.output3D.output3Dy', pinchUpperADL + '.input1')
+            cmds.connectAttr(pma + '.output3D.output3Dy', pinchLowerADL + '.input1')
+
+            cmds.connectAttr(pinchUpperMDL + '.output', pinchUpperADL + '.input2')
+            cmds.connectAttr(pinchLowerMDL + '.output', pinchLowerADL + '.input2')
+
+            cmds.connectAttr(pinchUpperADL + '.output', [upper_ctl_drivers[0], upper_ctl_drivers[4]][i] + '.ty')
+            cmds.connectAttr(pinchLowerADL + '.output', [lower_ctl_drivers[0], lower_ctl_drivers[4]][i] + '.ty')
+
+            cmds.connectAttr(pma + '.output3D.output3Dz', [upper_ctl_drivers[0], upper_ctl_drivers[4]][i] + '.tz')
+            cmds.connectAttr(pma + '.output3D.output3Dz', [lower_ctl_drivers[0], lower_ctl_drivers[4]][i] + '.tz')
