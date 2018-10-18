@@ -9,7 +9,7 @@ import os
 
 import origo.builder.lib.maya.matrix as matrix
 import origo.builder.lib.maya.mcurves as mcurves
-reload(mcurves)
+reload(matrix)
 
 class MLocalLips(manimrig.MAnimRigComponent):
 
@@ -37,9 +37,9 @@ class MLocalLips(manimrig.MAnimRigComponent):
                  'maya.ui.mpropertywidgets.MRigSelectionProperty', nicename='Jaw Joint',
                   icon=':/joint.svg', placeholdertext='Joint Name or guide')
 
-    def addConnectMirror(nodes, node, name='additivemirr', translate=True, rotate=False, scale=False):
+    def addConnectMirror(self, nodes, node, name='additivemirr', translate=True, rotate=False, scale=False):
 
-        print node
+
         if translate:
             pma = cmds.createNode('plusMinusAverage', n='_' + name + 'Translate_ADL')
             mdl = cmds.createNode('multDoubleLinear', n='_' + name + 'TranslateMIRR_MDL')
@@ -50,6 +50,7 @@ class MLocalLips(manimrig.MAnimRigComponent):
 
             cmds.connectAttr(pma + '.output3D.output3Dx', mdl + '.input1')
             cmds.setAttr(mdl + '.input2', -1)
+
 
             cmds.connectAttr(mdl + '.output', node + '.tx')
             cmds.connectAttr(pma + '.output3D.output3Dy', node + '.ty')
@@ -193,6 +194,14 @@ class MLocalLips(manimrig.MAnimRigComponent):
         cmds.setAttr(up_upcrv + '.ty', 0.1)
         cmds.setAttr(up_lowcrv + '.ty', 0.1)
 
+
+        crv_grp = cmds.group(em=True, n=cName + 'Crv_GRP')
+        crv_grp_o = cmds.group(n=cName + 'CrvOffset_GRP')
+        cmds.delete(cmds.pointConstraint(headjoint, jawjoint, crv_grp_o, mo=False))
+        cmds.parent([prox_upCrv, prox_lowCrv, up_upcrv, up_lowcrv], crv_grp)
+        cmds.parent(crv_grp_o, modgrp)
+        cmds.setAttr(crv_grp_o + '.v', 0)
+
         # Loop parameters and create curve drivers.
         # A stack of transforms, creating the o-shape and transform
         # from the control and a cluster driving the curves.
@@ -200,6 +209,9 @@ class MLocalLips(manimrig.MAnimRigComponent):
         ctlDriverGrp = cmds.group(em=True, n=cName + 'CtlDrivers_GRP')
         jointGrp = cmds.group(em=True, n=cName + 'Joints_GRP')
         cmds.parent([ctlDriverGrp, jointGrp], modgrp)
+
+        cmds.setAttr(ctlDriverGrp + '.v', 0)
+        cmds.setAttr(jointGrp + '.v', 0)
 
         poci_up = cmds.createNode('pointOnCurveInfo', n=cName + 'TMP_UP_POCI')
         poci_low = cmds.createNode('pointOnCurveInfo', n=cName + 'TMP_DWN_POCI')
@@ -500,7 +512,7 @@ class MLocalLips(manimrig.MAnimRigComponent):
         mainMouthGuide = guides[0]
         cmds.setAttr(mainMouthGuide + '.v', 0)
 
-        mainMouth = self.addControl('MainMouth', extra=1, size=0.8, mt=guides[0], shp='joint')
+        mainMouth = self.addControl('MainMouth', extra=1, size=0.8, mt=guides[0], shp='joint', lock=['.v'])
 
         leftCorner = self.addControl('LeftCorner', extra=2, size=0.4, mt=guides[1], shp='joint', color=18)
         rightCorner = self.addControl('RightCorner', extra=2, size=0.4, mt=guides[2], shp='joint', color=4)
@@ -523,23 +535,42 @@ class MLocalLips(manimrig.MAnimRigComponent):
         cmds.parent([lowerMidLip['offsetgroups'][0], lowerLeftMidLip['offsetgroups'][0],
                     lowerRightMidLip['offsetgroups'][0]], mainMouth['root'])
 
-        matrix.constraint(leftCorner['ctl'], upperMidLip['ctl'], upperLeftMidLip['offsetgroups'][1])
-        matrix.constraint(rightCorner['ctl'], upperMidLip['ctl'], upperRightMidLip['offsetgroups'][1])
 
-        matrix.constraint(leftCorner['ctl'], lowerMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1])
-        matrix.constraint(rightCorner['ctl'], lowerMidLip['ctl'], lowerRightMidLip['offsetgroups'][1])
+        cmds.connectAttr(mainMouth['ctl'] + '.rotate', crv_grp + '.rotate')
+        #cmds.connectAttr(mainMouth['ctl'] + '.scale', crv_grp + '.scale')
+
+        # AIM
+        l_cornerAim = cmds.spaceLocator(n='_%sLeftCorner_AIM'%cName)[0]
+        r_cornerAim = cmds.spaceLocator(n='_%sRightCorner_AIM'%cName)[0]
+        l_cornerAimAdd = cmds.spaceLocator(n='_%sLeftCornerAdd_AIM'%cName)[0]
+        r_cornerAimAdd = cmds.spaceLocator(n='_%sRightCornerAdd_AIM'%cName)[0]
+
+        cmds.connectAttr(leftCorner['ctl'] + '.rotate', l_cornerAimAdd + '.rotate')
+        cmds.connectAttr(rightCorner['ctl'] + '.rotate', r_cornerAimAdd + '.rotate')
+
+        cmds.parent(l_cornerAimAdd, l_cornerAim)
+        cmds.parent(r_cornerAimAdd, r_cornerAim)
+
+        cmds.delete(cmds.parentConstraint(leftCorner['ctl'], l_cornerAim, mo=False))
+        cmds.delete(cmds.parentConstraint(rightCorner['ctl'], r_cornerAim, mo=False))
+
+        cmds.parent(l_cornerAim, leftCorner['ctl'])
+        cmds.parent(r_cornerAim, rightCorner['ctl'])
+
+        matrix.constraint(l_cornerAimAdd, upperMidLip['ctl'], upperLeftMidLip['offsetgroups'][1])
+        matrix.constraint(r_cornerAimAdd, upperMidLip['ctl'], upperRightMidLip['offsetgroups'][1])
+
+        matrix.constraint(l_cornerAimAdd, lowerMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1])
+        matrix.constraint(r_cornerAimAdd, lowerMidLip['ctl'], lowerRightMidLip['offsetgroups'][1])
 
         cmds.addAttr(modgrp, ln='mouthOut', min=0.0, max=5.0, dv=0.25)
         cmds.setAttr("%s.mouthOut"%(modgrp), cb=True)
 
         tightMouthOutClamp = cmds.createNode('clamp', n='_tightMouthOut_CLAMP')
         tightMouthOutMDL = cmds.createNode('multDoubleLinear', n='_tightMouthOut_MDL')
-        tightMouthOutNEG = cmds.createNode('multDoubleLinear', n='_tightMouthOutNEG_MDL')
         tightMouthOutADL = cmds.createNode('addDoubleLinear', n='_tightMouthOut_ADL')
 
-        cmds.setAttr(tightMouthOutNEG + '.input2', -1)
-        cmds.connectAttr(leftCorner['ctl'] + '.tx', tightMouthOutNEG + '.input1')
-        cmds.connectAttr(tightMouthOutNEG + '.output', tightMouthOutADL + '.input1')
+        cmds.connectAttr(leftCorner['ctl'] + '.tx', tightMouthOutADL + '.input1')
         cmds.connectAttr(rightCorner['ctl'] + '.tx', tightMouthOutADL + '.input2')
 
         cmds.connectAttr(tightMouthOutADL + '.output', tightMouthOutClamp + '.inputR')
@@ -551,32 +582,67 @@ class MLocalLips(manimrig.MAnimRigComponent):
         cmds.connectAttr(tightMouthOutMDL + '.output', upperMidLip['offsetgroups'][1] + '.tz')
         cmds.connectAttr(tightMouthOutMDL + '.output', lowerMidLip['offsetgroups'][1] + '.tz')
 
-        self.addConnect([mainMouth['ctl'], upperMidLip['ctl'], upperMidLip['offsetgroups'][1]], upper_ctl_drivers[2], 'UpperMid')
-        self.addConnect([mainMouth['ctl'], lowerMidLip['ctl'], lowerMidLip['offsetgroups'][1]], lower_ctl_drivers[2], 'LowerMid')
+        self.addConnect([mainMouth['ctl'], upperMidLip['ctl'], upperMidLip['offsetgroups'][1]], upper_ctl_drivers[2], 'UpperMid', rotate=True)
+        self.addConnect([mainMouth['ctl'], lowerMidLip['ctl'], lowerMidLip['offsetgroups'][1]], lower_ctl_drivers[2], 'LowerMid', rotate=True)
 
-        self.addConnect([mainMouth['ctl'], upperLeftMidLip['ctl'], upperLeftMidLip['offsetgroups'][1]], upper_ctl_drivers[1],'UpperLeft')
-        self.addConnect([mainMouth['ctl'], upperRightMidLip['ctl'], upperRightMidLip['offsetgroups'][1]], upper_ctl_drivers[3],'UpperRight')
+        self.addConnect([mainMouth['ctl'], upperLeftMidLip['ctl'], upperLeftMidLip['offsetgroups'][1]], upper_ctl_drivers[1],'UpperLeft', rotate=True)
+        self.addConnect([mainMouth['ctl'], upperRightMidLip['ctl'], upperRightMidLip['offsetgroups'][1]], upper_ctl_drivers[3],'UpperRight', rotate=True)
 
-        self.addConnect([mainMouth['ctl'], lowerLeftMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1]], lower_ctl_drivers[1],'UpperLeft')
-        self.addConnect([mainMouth['ctl'], lowerRightMidLip['ctl'], lowerRightMidLip['offsetgroups'][1]], lower_ctl_drivers[3],'UpperRight')
+        self.addConnect([mainMouth['ctl'], lowerLeftMidLip['ctl'], lowerLeftMidLip['offsetgroups'][1]], lower_ctl_drivers[1],'UpperLeft', rotate=True)
+        self.addConnect([mainMouth['ctl'], lowerRightMidLip['ctl'], lowerRightMidLip['offsetgroups'][1]], lower_ctl_drivers[3],'UpperRight', rotate=True)
 
-        print corner_ctl_drivers
-        self.addConnectMirror([mainMouth['ctl'], leftCorner['ctl']], corner_ctl_drivers[0], 'LeftCorner')
+
+        # SPECIAL CASE MIRROR
+        #self.addConnectMirror([mainMouth['ctl'], leftCorner['ctl']], corner_ctl_drivers[0], 'LeftCorner')
+        pma = cmds.createNode('plusMinusAverage', n='_leftCornerTranslate_ADL')
+        mdl = cmds.createNode('multDoubleLinear', n='_leftCornerTranslateMIRR_MDL')
+
+
+        cmds.connectAttr(leftCorner['ctl'] + '.tx', mdl + '.input1')
+        cmds.setAttr(mdl + '.input2', -1)
+
+
+        cmds.connectAttr(mdl + '.output', pma + '.input3D[0].input3Dx')
+        cmds.connectAttr(leftCorner['ctl'] + '.ty', pma + '.input3D[0].input3Dy')
+        cmds.connectAttr(leftCorner['ctl'] + '.tz', pma + '.input3D[0].input3Dz')
+
+        cmds.connectAttr(mainMouth['ctl'] + '.translate', pma + '.input3D[1]')
+        cmds.connectAttr(pma + '.output3D', corner_ctl_drivers[0] + '.translate')
+
+
         self.addConnect([mainMouth['ctl'], rightCorner['ctl']], corner_ctl_drivers[1], 'RightCorner')
 
-        #self.addConnect([mainMouth['ctl'], leftUpperPinch['ctl']], upper_ctl_drivers[0], 'LeftUpperPinch')
-        #self.addConnect([mainMouth['ctl'], leftLowerPinch['ctl']], lower_ctl_drivers[0], 'LeftLowerPinch')
 
-        #self.addConnect([mainMouth['ctl'], rightUpperPinch['ctl']], upper_ctl_drivers[4], 'RightUpperPinch')
-        #self.addConnect([mainMouth['ctl'], rightLowerPinch['ctl']], lower_ctl_drivers[4], 'RightLowerPinch')
+        matrix.aimConstraint(mainMouth['ctl'], l_cornerAim)
+        matrix.aimConstraint(mainMouth['ctl'], r_cornerAim)
+
+        cmds.setAttr(l_cornerAim + '.v', 0)
+        cmds.setAttr(r_cornerAim + '.v', 0)
+        for attr in ['.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz', '.v']:
+            cmds.setAttr(l_cornerAim + attr, l=True, k=False)
+            cmds.setAttr(l_cornerAim + attr, cb=False)
+            cmds.setAttr(r_cornerAim + attr, l=True, k=False)
+            cmds.setAttr(r_cornerAim + attr, cb=False)
 
         # SETUP PINCH!
         for i, name in enumerate(['left', 'right']):
 
             pma = cmds.createNode('plusMinusAverage', n='_%sPinchTranslate_ADL'%name)
 
-            for e, driver_node in enumerate([mainMouth['ctl'], [leftCorner['ctl'], rightCorner['ctl']][i]]):
-                cmds.connectAttr(driver_node + '.translate', '%s.input3D[%d]'%(pma, e))
+            cmds.connectAttr(mainMouth['ctl'] + '.translate', '%s.input3D[0]'%pma)
+            if i:
+                cmds.connectAttr(rightCorner['ctl'] + '.translate', '%s.input3D[1]'%pma)
+            else:
+                leftmirr = cmds.createNode('multDoubleLinear', n='_%sLeftCornerMirr_MDL'%name)
+                cmds.connectAttr(leftCorner['ctl'] + '.tx', leftmirr + '.input1')
+                cmds.setAttr(leftmirr + '.input2', -1)
+
+                cmds.connectAttr(leftmirr + '.output', '%s.input3D[1].input3Dx'%pma)
+                cmds.connectAttr(leftCorner['ctl'] + '.ty', '%s.input3D[1].input3Dy'%pma)
+                cmds.connectAttr(leftCorner['ctl'] + '.tz', '%s.input3D[1].input3Dz'%pma)
+
+
+
 
             pinchUpperADL = cmds.createNode('addDoubleLinear', n='_%sPinchUpper_ADL'%name)
             pinchLowerADL = cmds.createNode('addDoubleLinear', n='_%sPinchLower_ADL'%name)
