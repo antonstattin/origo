@@ -124,6 +124,17 @@ class MLocalLips(manimrig.MAnimRigComponent):
         upCrv = mcurves.curve_from_edges(upperLipEdges, cName + 'Upper_CRV')
         lowCrv = mcurves.curve_from_edges(lowerLipEdges, cName + 'Lower_CRV')
 
+
+        upCrvCvs = cmds.ls(upCrv + '.cv[*]', fl=True)
+        lowCrvCvs = cmds.ls(lowCrv + '.cv[*]', fl=True)
+
+        upStart = cmds.xform(upCrvCvs[0], t=True, ws=True, q=True)
+        upEnd = cmds.xform(upCrvCvs[len(upCrvCvs)-1], t=True, ws=True, q=True)
+
+        upStart = cmds.xform(lowCrvCvs[0], t=True, ws=True, q=True)
+        upEnd = cmds.xform(lowCrvCvs[len(lowCrvCvs)-1], t=True, ws=True, q=True)
+
+
         cmds.parent(upCrv, modgrp)
         cmds.parent(lowCrv, modgrp)
 
