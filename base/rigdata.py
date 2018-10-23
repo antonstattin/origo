@@ -171,6 +171,10 @@ class RigData(object):
 
 		# be sure we store a list and save it
 		if type(data) != list: data = [data]
+
+		# only unique values
+		if data in self._dataDict['regdata']['value'][currentStage][dType]: return
+		
 		self._dataDict['regdata']['value'][currentStage][dType].extend(data)
 
 	def add(self, key, value, **kwarg):

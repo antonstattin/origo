@@ -204,6 +204,13 @@ class MAnimRigComponent(mrigc.MRigComponent):
 	def pre(self):
 		super(MAnimRigComponent, self).pre()
 
+		# Clean up
+		self.set('animcontrols', [])
+		self.set('skeleton', [])
+		self.set('position_guides', [])
+		self.set('skeleton_guides', [])
+
+
 	def build(self):
 		""" This build method will create the joints from the guides, if any """
 
@@ -394,9 +401,6 @@ class MAnimRigComponent(mrigc.MRigComponent):
 		ctl = cmds.group(em=True, n='%s_CTL'%controlname)
 
 		controls.append(ctl)
-
-
-
 
 		# get control function
 		shapefnc = getattr(controlshape.ControlShape, shape)

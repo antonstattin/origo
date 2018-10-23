@@ -25,20 +25,33 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         # create guides
         self.center = self.addRootGuide('Center', isSkeleton=False)
 
-        self.leftIn  = self.addGuide('LeftIn', parent=self.center, position=[1,0,0], isSkeleton=False)
-        self.leftMid  = self.addGuide('LeftMid', parent=self.leftIn, position=[2,0,0], isSkeleton=False)
-        self.leftOut  = self.addGuide('LeftOut', parent=self.leftMid, position=[3,0,0], isSkeleton=False)
+        self.leftIn  = self.addGuide('LeftIn', shape='axis', parent=self.center, position=[1,0,0], isSkeleton=False)
+        self.leftMid  = self.addGuide('LeftMid', shape='axis', parent=self.center, position=[2,0,0], isSkeleton=False)
+        self.leftOut  = self.addGuide('LeftOut', shape='axis', parent=self.center, position=[3,0,0], isSkeleton=False)
 
-        self.rightIn  = self.addGuide('RightIn', parent=self.center, position=[-1,0,0], isSkeleton=False)
-        self.rightMid  = self.addGuide('RightMid', parent=self.rightIn, position=[-2,0,0], isSkeleton=False)
-        self.rightOut  = self.addGuide('RightOut', parent=self.rightMid, position=[-3,0,0], isSkeleton=False)
+        self.rightIn  = self.addGuide('RightIn', shape='axis', parent=self.center, position=[-1,0,0], isSkeleton=False)
+        self.rightMid  = self.addGuide('RightMid', shape='axis', parent=self.center, position=[-2,0,0], isSkeleton=False)
+        self.rightOut  = self.addGuide('RightOut', shape='axis', parent=self.center, position=[-3,0,0], isSkeleton=False)
+
+        self.centerCtl = self.addGuide('CenterCtl', shape='cube', isSkeleton=False, parent=self.center, position=[0,1,0])
+
+        self.leftInCtl  = self.addGuide('LeftInCtl', parent=self.centerCtl, position=[1,1,0], isSkeleton=False)
+        self.leftMidCtl  = self.addGuide('LeftMidCtl', parent=self.centerCtl, position=[2,1,0], isSkeleton=False)
+        self.leftOutCtl  = self.addGuide('LeftOutCtl', parent=self.centerCtl, position=[3,1,0], isSkeleton=False)
+
+        self.rightInCtl  = self.addGuide('RightInCtl', parent=self.centerCtl, position=[-1,1,0], isSkeleton=False)
+        self.rightMidCtl  = self.addGuide('RightMidCtl', parent=self.centerCtl, position=[-2,1,0], isSkeleton=False)
+        self.rightOutCtl  = self.addGuide('RightOutCtl', parent=self.centerCtl, position=[-3,1,0], isSkeleton=False)
 
         self.center.build()
 
-        cname = self.get('name')
         guidegrp = self.getGuideGroup()
+
+        cname = self.get('name')
         col = cmds.sphere(spans=6, sections=9, ch=False, n=cname + 'CollisionSphere_COL')[0]
         cmds.parent(col, guidegrp)
+
+        cmds.parent(self.center.mayanode, guidegrp)
 
         self.add('collisionsphere', col)
         self.reg('transform', col)
@@ -54,8 +67,6 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         cmds.setAttr(pnt + '.v', 0)
 
         cmds.delete(cmds.parentConstraint(guide, rotpnt, mo=False))
-
-
 
         cpos = cmds.createNode("closestPointOnSurface", n="_%s%s_CPOS"%(cname, name))
         posi = cmds.createNode("pointOnSurfaceInfo", n="_%s%s_POSI"%(cname, name))
@@ -93,6 +104,7 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         cmds.connectAttr(fbfm + '.output', dm + '.inputMatrix')
 
         jntgrp = cmds.group(em=True, n='%s%sDrivenJnt_GRP'%(cname, name))
+        cmds.select(clear=True)
         jnt = cmds.joint(n='%s%sDriven_JNT'%(cname, name))
 
         cmds.setAttr(jntgrp + '.tx', cmds.getAttr(dm + '.outputTranslateX'))
@@ -102,8 +114,19 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         cmds.connectAttr(dm + '.outputRotateY', jntgrp + '.ry')
         cmds.connectAttr(dm + '.outputRotateZ', jntgrp + '.rz')
 
-        return rotpnt, jntgrp
+        cmds.parent(jnt, jntgrp)
+        cmds.delete(cmds.pointConstraint(guide, jnt, mo=False))
 
+        return rotpnt, jntgrp, pnt
+
+    def neggConnect(self, attrDriver, attrDriven, name):
+        cname = self.get('name')
+        mdl = cmds.createNode('multDoubleLinear', n='_%s%sNegg_MDL'%(cname, name))
+
+        cmds.connectAttr(attrDriver, mdl + '.input1')
+        cmds.setAttr(mdl + '.input2', -1)
+
+        cmds.connectAttr(mdl + '.output', attrDriven)
 
     def build(self):
         super(MLocalBrows, self).build()
@@ -118,6 +141,9 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         joints = cmds.group(em=True, n="%sJoints_GRP"%cname)
         drivers = cmds.group(em=True, n="%sDrivers_GRP"%cname)
 
+        cmds.setAttr(joints + '.v', 0)
+        cmds.setAttr(drivers + '.v', 0)
+
         # get guides
         center = guides[0]
 
@@ -129,13 +155,13 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         rightMid = guides[5]
         rightOut = guides[6]
 
-        li_rotpnt, li_jntgrp = self.addCollisionSlider(sphere, leftIn, name="LeftIn")
-        lm_rotpnt, lm_jntgrp = self.addCollisionSlider(sphere, leftMid, name="LeftMid")
-        lo_rotpnt, lo_jntgrp = self.addCollisionSlider(sphere, leftOut, name="LeftOut")
+        li_rotpnt, li_jntgrp, li_pnt = self.addCollisionSlider(sphere, leftIn, name="LeftIn")
+        lm_rotpnt, lm_jntgrp, lm_pnt = self.addCollisionSlider(sphere, leftMid, name="LeftMid")
+        lo_rotpnt, lo_jntgrp, lo_pnt = self.addCollisionSlider(sphere, leftOut, name="LeftOut")
 
-        ri_rotpnt, ri_jntgrp = self.addCollisionSlider(sphere, rightIn, name="RightIn")
-        rm_rotpnt, rm_jntgrp = self.addCollisionSlider(sphere, rightMid, name="RightMid")
-        ro_rotpnt, ro_jntgrp = self.addCollisionSlider(sphere, rightOut, name="RightOut")
+        ri_rotpnt, ri_jntgrp, ri_pnt = self.addCollisionSlider(sphere, rightIn, name="RightIn")
+        rm_rotpnt, rm_jntgrp, rm_pnt = self.addCollisionSlider(sphere, rightMid, name="RightMid")
+        ro_rotpnt, ro_jntgrp, ro_pnt = self.addCollisionSlider(sphere, rightOut, name="RightOut")
 
         leftDriven = cmds.group(em=True, n='%sLeft_GRP'%cname)
         rightDriven = cmds.group(em=True, n='%sRight_GRP'%cname)
@@ -150,24 +176,160 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         cmds.parent([ri_rotpnt, rm_rotpnt, ro_rotpnt], rightDriven)
 
         cmds.parent([leftDriven, rightDriven], drivers)
+        cmds.parent([joints, drivers], modgrp)
+
+        leftIn = guides[1]
+        leftMid = guides[2]
+        leftOut = guides[3]
+
+        rightIn = guides[4]
+        rightMid = guides[5]
+
+        rightOut = guides[7]
 
 
-        leftInCtl = self.addControl('LeftIn', extra=1, size=0.8, mt=leftIn, shp='joint', lock=['.v'])
-        leftInCtl = self.addControl('LeftMid', extra=1, size=0.8, mt=leftMid, shp='joint', lock=['.v'])
-        leftInCtl = self.addControl('LeftOut', extra=1, size=0.8, mt=leftOut, shp='joint', lock=['.v'])
+        leftInCtl = self.addControl('LeftIn', extra=2, size=0.8, mt=guides[8], shp='joint', lock=['.v'], color=18)
+        leftMidCtl = self.addControl('LeftMid', extra=1, size=0.8, mt=guides[9], shp='joint', lock=['.v'], color=18)
+        leftOutCtl = self.addControl('LeftOut', extra=1, size=0.8, mt=guides[10], shp='joint', lock=['.v'], color=18)
 
-        rightInCtl = self.addControl('RightIn', extra=1, size=0.8, mt=rightIn, shp='joint', lock=['.v'])
-        rightInCtl = self.addControl('RightMid', extra=1, size=0.8, mt=rightMid, shp='joint', lock=['.v'])
-        rightInCtl = self.addControl('RightOut', extra=1, size=0.8, mt=rightOut, shp='joint', lock=['.v'])
+        rightInCtl = self.addControl('RightIn', extra=1, size=0.8, mt=guides[11], shp='joint', lock=['.v'], color=4)
+        rightMidCtl = self.addControl('RightMid', extra=1, size=0.8, mt=guides[12], shp='joint', lock=['.v'], color=4)
+        rightOutCtl = self.addControl('RightOut', extra=1, size=0.8, mt=guides[13], shp='joint', lock=['.v'], color=4)
 
-    def undo_post(self):
-        super(MLocalBrows, self).undo_post()
+        cmds.setAttr(leftInCtl['offsetgroups'][1] + '.sx', -1)
 
         guidegrp = self.getGuideGroup()
-        cmds.setAttr(guidegrp + '.v', 1)
+        cmds.setAttr(guidegrp + '.v', 0)
+        cmds.setAttr(center + '.v', 0)
+
+        cmds.connectAttr(leftInCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(li_jntgrp, c=True)[0] + '.ty')
+
+        #self.neggConnect(leftInCtl['ctl'] +  '.tx',
+                         #cmds.listRelatives(li_jntgrp, c=True)[0] + '.ty',
+                         #'LeftInCtlTX')
+
+        self.neggConnect(leftMidCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(lm_jntgrp, c=True)[0] + '.ty',
+                         'LeftInCtlTX')
+
+        self.neggConnect(leftOutCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(lo_jntgrp, c=True)[0] + '.ty',
+                         'LeftInCtlTX')
+
+        self.neggConnect(rightInCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(ri_jntgrp, c=True)[0] + '.ty',
+                         'LeftInCtlTX')
+
+        self.neggConnect(rightMidCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(rm_jntgrp, c=True)[0] + '.ty',
+                         'LeftInCtlTX')
+
+        self.neggConnect(rightOutCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(ro_jntgrp, c=True)[0] + '.ty',
+                         'LeftInCtlTX')
+
+        cmds.connectAttr(leftInCtl['ctl'] + '.ty', li_pnt + '.ty')
+        cmds.connectAttr(leftMidCtl['ctl'] + '.ty', lm_pnt + '.ty')
+        cmds.connectAttr(leftOutCtl['ctl'] + '.ty', lo_pnt + '.ty')
+
+        cmds.connectAttr(rightInCtl['ctl'] + '.ty', ri_pnt + '.ty')
+        cmds.connectAttr(rightMidCtl['ctl'] + '.ty', rm_pnt + '.ty')
+        cmds.connectAttr(rightOutCtl['ctl'] + '.ty', ro_pnt + '.ty')
+
+        cmds.connectAttr(leftInCtl['ctl'] + '.tz',  cmds.listRelatives(li_jntgrp, c=True)[0] + '.tz')
+        cmds.connectAttr(leftMidCtl['ctl'] + '.tz',  cmds.listRelatives(lm_jntgrp, c=True)[0] + '.tz')
+        cmds.connectAttr(leftOutCtl['ctl'] + '.tz',  cmds.listRelatives(lo_jntgrp, c=True)[0] + '.tz')
+
+        cmds.connectAttr(rightInCtl['ctl'] + '.tz',  cmds.listRelatives(ri_jntgrp, c=True)[0] + '.tz')
+        cmds.connectAttr(rightMidCtl['ctl'] + '.tz',  cmds.listRelatives(rm_jntgrp, c=True)[0] + '.tz')
+        cmds.connectAttr(rightOutCtl['ctl'] + '.tz',  cmds.listRelatives(ro_jntgrp, c=True)[0] + '.tz')
+
+        midposgrp = cmds.group(em=True, n='%sMidDetail_GRP'%cname)
+        midjntgrp = cmds.group(em=True, n='%sMidDetailJnt_GRP'%cname)
+        middjnt = cmds.joint(n='%sMidDetail_JNT'%cname)
+
+        cmds.parent(midposgrp, modgrp)
+        cmds.parent(midjntgrp, midposgrp)
+
+        cmds.parent(midjntgrp, joints)
+        cmds.delete(cmds.pointConstraint(center, midjntgrp, mo=False))
+
+        midpos = cmds.group(em=True, n='%sMidPos_GRP'%cname)
+        cmds.parent(midpos, midposgrp)
+        cmds.delete(cmds.pointConstraint(center, midpos, mo=False))
+
+        matrix.constraint(midpos,
+                          cmds.listRelatives(ri_jntgrp, c=True)[0],
+                          cmds.listRelatives(li_jntgrp, c=True)[0],
+                          midjntgrp)
+
+
+        adl = cmds.createNode('addDoubleLinear', n='_%sMidBrowOut_ADL'%(cname))
+        mdl = cmds.createNode('multDoubleLinear', n='_%sMidBrowOutMult_MDL'%(cname))
+        clamp = cmds.createNode('clamp', n='_%sMidBrowOut_CLAMP'%(cname))
+
+
+        #self.neggConnect(leftInCtl['ctl'] + '.tx', adl + '.input1', 'MidBrowOut')
+        cmds.connectAttr(leftInCtl['ctl'] + '.tx', adl + '.input1')
+        cmds.connectAttr(rightInCtl['ctl'] + '.tx', adl + '.input2')
+
+        cmds.addAttr(midposgrp, ln='MidBrowOut', min=0.0, dv=0.1)
+        cmds.setAttr("%s.MidBrowOut"%(midposgrp), cb=True)
+
+        self.reg('attribute', "%s.MidBrowOut"%(midposgrp))
+
+        cmds.connectAttr(adl + '.output', mdl + '.input1')
+        cmds.connectAttr(midposgrp + '.MidBrowOut', mdl + '.input2')
+
+        cmds.setAttr(clamp + '.maxR', 9999)
+        cmds.connectAttr(mdl + '.output', clamp + '.inputR')
+        cmds.connectAttr(clamp + '.outputR', middjnt + '.tz')
+
+        alljoints = [middjnt]
+        for jgrp in [li_jntgrp, lm_jntgrp, lo_jntgrp,
+                     ri_jntgrp, rm_jntgrp, ro_jntgrp]:
+
+            jnt = cmds.listRelatives(jgrp, c=True)[0]
+            alljoints.append(jnt)
+
+
+        self.addToSkeletonSet(alljoints)
+
+
+    def addArrow(self, pointB, pointA):
+        # create arrow
+        arrow = cmds.createNode("annotationShape")
+        arrow_parent = cmds.listRelatives(arrow, p=True)[0]
+        crv = cmds.curve(p=[0,0,0], d=1)
+        cmds.connectAttr(cmds.listRelatives(crv, s=True)[0] +".worldMatrix[0]",
+                     arrow+ ".dagObjectMatrix[0]")
+        crvshp = cmds.listRelatives(crv, s=True)[0]
+        cmds.setAttr(crvshp + ".template", 1)
+        cmds.parent(crvshp, pointA, r=True, s=True)
+        cmds.parent(arrow, pointB, r=True, s=True)
+
+        cmds.delete(arrow_parent)
+        cmds.delete(crv)
 
     def post(self):
         super(MLocalBrows, self).post()
 
-        guidegrp = self.getGuideGroup()
-        cmds.setAttr(guidegrp + '.v', 0)
+        ctls = self.get('animcontrols')
+
+        self.addArrow(ctls[2], ctls[1])
+        self.addArrow(ctls[1], ctls[0])
+        self.addArrow(ctls[5], ctls[4])
+        self.addArrow(ctls[4], ctls[3])
+
+#
+
+    def undo_build(self):
+        super(MLocalBrows, self).undo_build()
+
+        try:
+            guides = self.get('position_guides')
+            guidegrp = self.getGuideGroup()
+            cmds.setAttr(guidegrp + '.v', 1)
+            cmds.setAttr(guides[0] + '.v', 1)
+        except: pass
