@@ -19,7 +19,7 @@ def aimConstraint(driver, driven, **kwargs):
 	upObject = kwargs.get('upObject', kwargs.get('uo', None))
 	upVector = kwargs.get('upVector', kwargs.get('uvec', [0,1,0]))
 	beigncycle = kwargs.get('beigncycle', kwargs.get('bc', False))
-	negaim = kwargs.get('negativeAim', kwargs.get('neg', True))
+	negaim = kwargs.get('negativeAim', kwargs.get('neg', False))
 
 	invParMult = pm.createNode("multMatrix", n='_%sInv_mtx'%name)
 	decomposeMat = pm.createNode("decomposeMatrix", n='_%s_DcmpMtx'%name)

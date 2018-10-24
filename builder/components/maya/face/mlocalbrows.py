@@ -187,16 +187,28 @@ class MLocalBrows(manimrig.MAnimRigComponent):
 
         rightOut = guides[7]
 
+        lock_attrs = ['.v', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz']
+        leftInCtl = self.addControl('LeftIn', extra=2, size=0.8, mt=guides[8],
+                                    shp='joint', color=18, lock=lock_attrs)
 
-        leftInCtl = self.addControl('LeftIn', extra=2, size=0.8, mt=guides[8], shp='joint', lock=['.v'], color=18)
-        leftMidCtl = self.addControl('LeftMid', extra=1, size=0.8, mt=guides[9], shp='joint', lock=['.v'], color=18)
-        leftOutCtl = self.addControl('LeftOut', extra=1, size=0.8, mt=guides[10], shp='joint', lock=['.v'], color=18)
+        leftMidCtl = self.addControl('LeftMid', extra=2, size=0.8, mt=guides[9],
+                                    shp='joint', color=18, lock=lock_attrs)
 
-        rightInCtl = self.addControl('RightIn', extra=1, size=0.8, mt=guides[11], shp='joint', lock=['.v'], color=4)
-        rightMidCtl = self.addControl('RightMid', extra=1, size=0.8, mt=guides[12], shp='joint', lock=['.v'], color=4)
-        rightOutCtl = self.addControl('RightOut', extra=1, size=0.8, mt=guides[13], shp='joint', lock=['.v'], color=4)
+        leftOutCtl = self.addControl('LeftOut', extra=2, size=0.8, mt=guides[10],
+                                    shp='joint', color=18, lock=lock_attrs)
+
+        rightInCtl = self.addControl('RightIn', extra=1, size=0.8, mt=guides[11],
+                                     shp='joint', color=4, lock=lock_attrs)
+
+        rightMidCtl = self.addControl('RightMid', extra=1, size=0.8, mt=guides[12],
+                                     shp='joint', color=4, lock=lock_attrs)
+
+        rightOutCtl = self.addControl('RightOut', extra=1, size=0.8, mt=guides[13],
+                                     shp='joint', color=4, lock=lock_attrs)
 
         cmds.setAttr(leftInCtl['offsetgroups'][1] + '.sx', -1)
+        cmds.setAttr(leftMidCtl['offsetgroups'][1] + '.sx', -1)
+        cmds.setAttr(leftOutCtl['offsetgroups'][1] + '.sx', -1)
 
         guidegrp = self.getGuideGroup()
         cmds.setAttr(guidegrp + '.v', 0)
@@ -205,17 +217,11 @@ class MLocalBrows(manimrig.MAnimRigComponent):
         cmds.connectAttr(leftInCtl['ctl'] +  '.tx',
                          cmds.listRelatives(li_jntgrp, c=True)[0] + '.ty')
 
-        #self.neggConnect(leftInCtl['ctl'] +  '.tx',
-                         #cmds.listRelatives(li_jntgrp, c=True)[0] + '.ty',
-                         #'LeftInCtlTX')
+        cmds.connectAttr(leftMidCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(lm_jntgrp, c=True)[0] + '.ty')
 
-        self.neggConnect(leftMidCtl['ctl'] +  '.tx',
-                         cmds.listRelatives(lm_jntgrp, c=True)[0] + '.ty',
-                         'LeftInCtlTX')
-
-        self.neggConnect(leftOutCtl['ctl'] +  '.tx',
-                         cmds.listRelatives(lo_jntgrp, c=True)[0] + '.ty',
-                         'LeftInCtlTX')
+        cmds.connectAttr(leftOutCtl['ctl'] +  '.tx',
+                         cmds.listRelatives(lo_jntgrp, c=True)[0] + '.ty')
 
         self.neggConnect(rightInCtl['ctl'] +  '.tx',
                          cmds.listRelatives(ri_jntgrp, c=True)[0] + '.ty',
