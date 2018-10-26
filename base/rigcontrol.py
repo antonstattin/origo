@@ -63,6 +63,7 @@ class RigControl(object):
 
 	def updateSourceModel(self):
 		""" updates the source model if any"""
+
 		if self._model:
 			model = self._model.sourceModel()
 			model.dataChanged.emit(0, 0)
@@ -99,6 +100,7 @@ class RigControl(object):
 
 				if importdata:
 					self._root.importData(stage, mod)
+
 
 				self.updateSourceModel()
 
@@ -165,7 +167,31 @@ class RigControl(object):
 		allModules.extend(root._getRecursiveChildren())
 
 		# reset all modules
-		for mod in allModules: mod.set('bstage', 0)
+		allModules.reverse()
+		for mod in allModules:
+
+			if mod._type == 1:
+				mod.set('bstage', 0)
+				continue
+
+			current_stage = mod.get('bstage')
+
+			if current_stage <= 3:
+				mod.undo_post()
+				mod.set('bstage', 2)
+				current_stage = 2
+
+			if current_stage <= 2:
+				mod.undo_build()
+				mod.set('bstage', 1)
+				current_stage = 1
+
+			if current_stage <= 1:
+				mod.undo_pre()
+				mod.set('bstage', 0)
+				current_stage = 0
+
+		self.updateSourceModel()
 
 		# run all stages
 		self.buildStage(1, root, importdata)

@@ -23,3 +23,9 @@ class MAssetImport(mrig.MRigComponent):
 
         if os.path.exists(assetpath):
             cmds.file(assetpath, i=True)
+
+        if cmds.ls('model_GRP'):
+            if cmds.ls('*_GEO_GRP'):
+                geogrp = cmds.ls('*_GEO_GRP')[0]
+
+                cmds.parent('model_GRP', geogrp)

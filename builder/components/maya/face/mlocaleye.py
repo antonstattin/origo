@@ -45,21 +45,30 @@ class MLocalEye(manimrig.MAnimRigComponent):
         cName = self.get('name')
         eyegeo = self.get('eyegeo')
         eyeloop = self.get('eyeloop')
+        eyecavity = self.get('eyecavity')
         modgrp = self.getModGroup()
 
         if not eyegeo: return
         if not eyeloop: return
 
-        if not isinstance(eyegeo, list):
-            eyegeo = eval(eyegeo)[0]
+        if not isinstance(eyegeo, list): eyegeo = eval(eyegeo)[0]
+        else: eyegeo = eyegeo[0]
 
         if not isinstance(eyeloop, list):
             eyeloop = eval(eyeloop)
+
+        cavity_crv = ''
+        if eyecavity:
+            if not isinstance(eyecavity, list): eyecavity = eval(eyecavity)
+            else: eyecavity = eyecavity[0]
+
+            cavity_crv = mcurves.curve_from_edges(eyecavity, cName + 'Cavity_CRV')
 
         # up dwn curves
         up, dwn = mcurves.create_edges(cName, eyeloop)
         cmds.parent([up, dwn], modgrp)
 
+        self.add('cavitycrv', cavity_crv)
         self.add('upcrv', up)
         self.add('locrv', dwn)
         self.add('eye', eyegeo)
@@ -99,6 +108,7 @@ class MLocalEye(manimrig.MAnimRigComponent):
         upcrv = self.get('upcrv')
         locrv = self.get('locrv')
         eyegeo = self.get('eye')
+        cavitycrv = self.get('cavitycrv')
 
         modgrp = self.getModGroup()
 
@@ -125,10 +135,8 @@ class MLocalEye(manimrig.MAnimRigComponent):
         cmds.rebuildCurve(lo_blinkShp, ch=False, rpo=1, rt=0, end=1, kr=0, kcp=0,
                           kep=1, kt=1, s=4, d=3, tol=0.01)
 
-        cmds.blendShape(lo_blinkShp, prox_upCrv)
-        cmds.blendShape(up_blinkShp, prox_lowCrv)
-
-
+        cmds.blendShape(lo_blinkShp, prox_upCrv, n='_%sUpToLoBlink_BSHP'%cName)
+        cmds.blendShape(up_blinkShp, prox_lowCrv, n='_%sLoToUpBlink_BSHP'%cName)
 
         for crv in [prox_upCrv, prox_lowCrv, up_blinkShp, lo_blinkShp]:
             cmds.setAttr(crv + '.v', 0)
@@ -170,7 +178,6 @@ class MLocalEye(manimrig.MAnimRigComponent):
                 cmds.xform(offsetGrp, t=cmds.getAttr(poci_up + '.result.position')[0], ws=True)
                 cmds.parent(offsetGrp, ctlDriverGrp)
                 cmds.setAttr(offsetGrp + '.v', 0)
-
 
                 # create cluster
                 clsnode = cmds.cluster(['%s.cv[%d]'%(prox_lowCrv, i), '%s.cv[%d]'%(prox_upCrv, i)],
