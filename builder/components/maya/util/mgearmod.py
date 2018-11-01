@@ -13,7 +13,14 @@ class MGearMod(mrig.MRigComponent):
 		self.add('assetpath', '', public=True, ui='origo.uiutils.widgets.'\
 				 'propertywidgets.RigBrowseProperty', browsetype='file')
 
+		self.add('SaveUpdate', '', public=True, ui='origo.uiutils.widgets.'\
+                 'propertywidgets.RigActionButtonProperty', icon=':/save.png',
+				 'nicename'='Save & Update', fnc=self.saveBtnAction)
+
 		self.set('icon', ':/humanIK_CharCtrl.png')
+
+	def saveBtnAction(self):
+		print "Save"
 
 
 	def pre(self):

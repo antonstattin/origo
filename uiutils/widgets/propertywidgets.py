@@ -189,6 +189,34 @@ class RigPythonScriptProperty(AbstractPropertyWidget):
 	valueProperty = QtCore.Property(str, getValue, setValue)
 
 
+class RigActionButtonProperty(AbstractPropertyWidget):
+	def __init__(self, name, value, **kwarg):
+		super(RigActionButtonProperty, self).__init__()
+
+		iconarg = kwarg.get('icon', ':/build.png')
+		nicenamearg = kwarg.get('nicename', name)
+		fnc = kwarg.get('fnc', name)
+
+
+		self.actionBtn = QtWidgets.QPushButton(nicenamearg)
+		self.actionBtn.setIcon(QtWidgets.QIcon(iconarg))
+
+		self.actionBtn.clicked.connect(fnc)
+
+		self.layout().addWidget(self.actionBtn)
+
+
+	def setValue(self, value):
+		if value == '': return
+
+
+	def getValue(self):
+		return ""
+
+	def widget(self):
+		return self.actionBtn
+	valueProperty = QtCore.Property(str, getValue, setValue)
+
 
 class RigBrowseProperty(AbstractPropertyWidget):
 	""" Special widget for browsing files """
