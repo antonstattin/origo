@@ -26,25 +26,34 @@ def importWeight(fPath, cName):
         objtype = data[deformer]['objtype']
         geo = data[deformer]['geo']
 
+
         if not cmds.objExists(deformer): continue
 
         weightfiles = os.listdir(weightfolder)
         if '%s.xml'%deformer not in weightfiles: continue
         weightfile = '%s/%s.xml'%(weightfolder, deformer)
 
+
         current_points = 0
-        if cmds.objectType(geo) == "mesh":
-            current_points = cmds.polyEvaluate(geo, v=True)
-        elif cmds.objectType(geo) == "nurbsCurve":
-            current_points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
+
+        if isinstance(geo, list): geo = str(geo[0])
+
+        if cmds.objExists(geo):
+            if cmds.objectType(geo) == "mesh":
+                current_points = cmds.polyEvaluate(geo, v=True)
+            elif cmds.objectType(geo) == "nurbsCurve":
+                current_points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
+
 
         if points == current_points:
-            print 'index'
-            cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
-                             m='index', deformer=deformer, im=True)
+            try:
+                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+                                 m='index', deformer=deformer, im=True)
+            except: logger.info("%s nothing to import.."%(deformer))
         else:
             cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
-                             m='barycentric', deformer=deformer, im=True)
+                                 m='barycentric', deformer=deformer, im=True)
+
 
 def importSet(fPath, cName):
 
