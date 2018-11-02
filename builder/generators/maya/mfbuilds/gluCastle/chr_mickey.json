@@ -1,0 +1,5 @@
+{
+  "chr_name":"chr_mickey",
+  "rig_scene_path":"/jack/jobs/484_gluCastle/000_dev/000_820_rigging/maya/scenes/rig/glu820_chr_mickey_rig",
+  "rig_plugins": ["mgear_solvers.so", "matrixNodes.so"]
+}

@@ -58,19 +58,14 @@ class MDeformerStack(mrig.MRigComponent):
 
                 cmds.sets(newset, addElement=mainset, e=True)
 
-        self.add('createdSets', allsets)
+        self.reg('set', allsets)
 
     def build(self):
-
-        # register sets
-        objectsets = self.get('createdSets')
-        self.reg('set', objectsets)
-
-    def post(self):
-        super(MDeformerStack, self).post()
+        super(MDeformerStack, self).build()
 
         deformtree = self.getDeformTree()
 
+        alldeformers = []
         for nodename in deformtree.keys():
             deformerdata = deformtree[nodename]
             targetType = deformerdata['targetType']
@@ -95,15 +90,32 @@ class MDeformerStack(mrig.MRigComponent):
                     if not cmds.objExists(nodename): continue
                     nodes = [nodename]
 
-                self.addDeformer(nodes, deformerName, deformerType, deformerSet)
+                deformer = self.addDeformer(nodes, deformerName, deformerType, deformerSet)
+                alldeformers.append(deformer)
+
+                if deformerType == 'skinCluster': self.reg('joints', deformer)
+
+        self.add('deformernodes', alldeformers)
+
+
+    def post(self):
+        super(MDeformerStack, self).post()
+
+        alldeformers = self.get('deformernodes')
+        if not isinstance(alldeformers, list):
+            alldeformers = eval(alldeformers)
+
+        # register deformers
+        for deformer in alldeformers: self.reg('weight', deformer)
+
 
     def addDeformer(self, nodes, deformerName, deformerType, deformerSet):
 
         if deformerType == 'skinCluster':
-            self.addSkinCluster(nodes, deformerName, deformerSet)
+            return self.addSkinCluster(nodes, deformerName, deformerSet)
 
         elif deformerType == 'deltaMush':
-            self.addDeltaMush(nodes, deformerName, deformerSet)
+            return self.addDeltaMush(nodes, deformerName, deformerSet)
 
         elif deformerType == 'tension':
             return
@@ -140,7 +152,9 @@ class MDeformerStack(mrig.MRigComponent):
             if cmds.objectType(node) == 'container': continue
             skc = cmds.skinCluster(allJoints, node, bindMethod=0,
                                    n="%s_%s_SKC"%(self.get('name'), node))
-            self.reg('weight', skc)
+
+            return skc
+            #self.reg('weight', skc)
 
     def addDeltaMush(self, nodes, deformerName, deformerSet):
         fulldeformername = '_%s%s'%(self.get('name'), deformerName.title())
@@ -148,4 +162,5 @@ class MDeformerStack(mrig.MRigComponent):
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
             dm = cmds.deltaMush(node, n="%s_%s_MUSH"%(self.get('name'), node))
-            self.reg('weight', dm)
+
+            return dm

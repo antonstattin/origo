@@ -7,6 +7,29 @@ import os
 
 logger = logging.getLogger("Origo")
 
+def importJoints(fPath, cName):
+
+    filename = os.path.basename(fPath)
+    path = os.path.dirname(fPath)
+
+    with open(fPath) as f:
+        data = json.load(f)
+
+    for skc in data.keys():
+        current_inf = cmds.skinCluster(skc, inf=True, q=True)
+        saved_inf = data[skc]
+
+
+        keep = filter(lambda x: x in saved_inf, current_inf)
+        add = filter(lambda x: x not in keep, saved_inf)
+        remove = filter(lambda x: x not in saved_inf, current_inf)
+
+        
+
+
+
+
+
 def importWeight(fPath, cName):
 
     filename = os.path.basename(fPath)
@@ -292,7 +315,19 @@ def exportTransform(nodes, path, dtype, stage, cId, name):
 
     exportData(data, path, dtype, stage, cId)
 
+
+def exportJoints(nodes, path, dtype, stage, cId, name):
+
+    data = {}
+    for node in nodes:
+        inf = cmds.skinCluster(node, inf=True, q=True)
+        data.update({node:inf})
+
+    exportData(data, path, dtype, stage, cId)
+
+
 def exportWeight(nodes, path, dtype, stage, cId, name):
+    #TODO: add attributes to deformer
 
     data = {}
     for node in nodes:
@@ -330,7 +365,7 @@ def exportWeight(nodes, path, dtype, stage, cId, name):
 
     for deformer in data.keys():
         cmds.deformerWeights(deformer + '.xml', path=weightfolder, vc=True,
-                             deformer=deformer, export=True)
+                             deformer=deformer, export=True,dv=-1.0)
 
 def exportHierarchy(nodes, path, dtype, stage, cId, name):
 
