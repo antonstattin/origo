@@ -4,6 +4,7 @@ import mgear.maya.shifter as shifter
 import origo.builder.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
+import re
 
 class MGearMod(mrig.MRigComponent):
 
@@ -15,12 +16,49 @@ class MGearMod(mrig.MRigComponent):
 
 		self.add('SaveUpdate', '', public=True, ui='origo.uiutils.widgets.'\
                  'propertywidgets.RigActionButtonProperty', icon=':/save.png',
-				 'nicename'='Save & Update', fnc=self.saveBtnAction)
+				 nicename='Save And Update', fnc=self.saveBtnAction)
 
 		self.set('icon', ':/humanIK_CharCtrl.png')
 
 	def saveBtnAction(self):
-		print "Save"
+		"""
+			Button Function Command, saves a new version of the guide
+		"""
+
+		# double check guide group exists
+		guide = cmds.ls('guide')
+		if not guide: return
+
+		guidegrp = guide[0]
+
+		assetpath = self.get('assetpath')
+
+		cmds.select(clear=True)
+		cmds.select(guidegrp)
+
+		os.path.exists(assetpath)
+
+		if not os.path.exists(assetpath): return
+
+		dir_path = os.path.dirname(assetpath)
+		currentpath = os.path.join(dir_path, 'guide_current.ma')
+		versionpath = os.path.join(dir_path, '.version')
+
+		if not os.path.exists(versionpath): os.mkdir(versionpath)
+
+		latest_version = 0
+		for fname in os.listdir(versionpath):
+			version = int(re.search('_v\d\d\d', fname).group().replace('_v', ''))
+
+			if latest_version < version:
+				latest_version = version
+
+		newfile =  os.path.join(versionpath, 'guide_v%s.ma'%(str(latest_version+1).zfill(3)))
+
+		cmds.file(currentpath, force=True, options="v=0;", typ="mayaAscii", pr=True, es=True)
+		cmds.file(newfile, force=True, options="v=0;", typ="mayaAscii", pr=True, es=True)
+
+		self.set('assetpath', currentpath)
 
 
 	def pre(self):
@@ -65,3 +103,8 @@ class MGearMod(mrig.MRigComponent):
 		except: pass
 
 		cmds.setAttr('guide.v', 0)
+
+		# register controls
+		for ctl in cmds.ls("*_ctl"): self.reg('shape', ctl)
+
+		for ctl in cmds.ls("*_CTR"): self.reg('shape', ctl)

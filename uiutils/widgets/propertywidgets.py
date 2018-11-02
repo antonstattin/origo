@@ -199,7 +199,7 @@ class RigActionButtonProperty(AbstractPropertyWidget):
 
 
 		self.actionBtn = QtWidgets.QPushButton(nicenamearg)
-		self.actionBtn.setIcon(QtWidgets.QIcon(iconarg))
+		self.actionBtn.setIcon(QtGui.QIcon(iconarg))
 
 		self.actionBtn.clicked.connect(fnc)
 

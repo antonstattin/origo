@@ -116,6 +116,8 @@ if __name__ == "__main__":
 
     print('- Origo Build Complete - ')
 
+    rigcontrol.saveRigxXml()
+
     print('\n- Saving Work Scene - ')
     # Initialize the core depending on application
     db = sharedDb.MilfordDB("maya")
