@@ -243,6 +243,10 @@ class RigControl(object):
 			or type(value) == tuple \
 			or type(value) ==list: value = str(data[1])
 
+			# rare error where a id with letters is casted as float..
+			if float('Inf') == value:
+				value = str(value)
+
 			node.setAttribute(key, value)
 
 		for child in rigobj.getChildren():
