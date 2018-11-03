@@ -19,15 +19,12 @@ def importJoints(fPath, cName):
         current_inf = cmds.skinCluster(skc, inf=True, q=True)
         saved_inf = data[skc]
 
-
         keep = filter(lambda x: x in saved_inf, current_inf)
         add = filter(lambda x: x not in keep, saved_inf)
         remove = filter(lambda x: x not in saved_inf, current_inf)
 
-        
-
-
-
+        if add: cmds.skinCluster(skc, addInfluence=add, e=True)
+        if remove: cmds.skinCluster(skc, removeInfluence=remove, e=True)
 
 
 def importWeight(fPath, cName):
