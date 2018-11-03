@@ -99,7 +99,7 @@ class MDeformerStack(mrig.MRigComponent):
 
     def post(self):
         super(MDeformerStack, self).post()
-
+        
         alldeformers = self.get('deformernodes')
         if not isinstance(alldeformers, list):
             alldeformers = eval(alldeformers)
