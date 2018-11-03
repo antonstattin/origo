@@ -64,7 +64,7 @@ class MDeformerStack(mrig.MRigComponent):
         # register sets
         objectsets = self.get('createdSets')
         self.reg('set', objectsets)
-        
+
         self.add('createdSets', allsets)
 
     def post(self):
@@ -96,7 +96,24 @@ class MDeformerStack(mrig.MRigComponent):
                     if not cmds.objExists(nodename): continue
                     nodes = [nodename]
 
-                self.addDeformer(nodes, deformerName, deformerType, deformerSet)
+                deformer = self.addDeformer(nodes, deformerName, deformerType, deformerSet)
+                alldeformers.append(deformer)
+
+                if deformerType == 'skinCluster': self.reg('joints', deformer)
+
+        self.add('deformernodes', alldeformers)
+
+
+    def post(self):
+        super(MDeformerStack, self).post()
+
+        alldeformers = self.get('deformernodes')
+        if not isinstance(alldeformers, list):
+            alldeformers = eval(alldeformers)
+
+        # register deformers
+        for deformer in alldeformers: self.reg('weight', deformer)
+
 
     def addDeformer(self, nodes, deformerName, deformerType, deformerSet):
 
