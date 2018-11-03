@@ -2,7 +2,6 @@
 import origo.builder.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
-
 import logging
 
 class MDeformerStack(mrig.MRigComponent):
