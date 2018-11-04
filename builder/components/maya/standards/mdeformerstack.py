@@ -67,11 +67,11 @@ class MDeformerStack(mrig.MRigComponent):
 
         self.add('createdSets', allsets)
 
-    def post(self):
-        super(MDeformerStack, self).post()
+    def build(self):
+        super(MDeformerStack, self).build()
 
         deformtree = self.getDeformTree()
-
+        alldeformers = []
         for nodename in deformtree.keys():
             deformerdata = deformtree[nodename]
             targetType = deformerdata['targetType']
@@ -97,7 +97,7 @@ class MDeformerStack(mrig.MRigComponent):
                     nodes = [nodename]
 
                 deformer = self.addDeformer(nodes, deformerName, deformerType, deformerSet)
-                alldeformers.append(deformer)
+                alldeformers.extend(deformer)
 
                 if deformerType == 'skinCluster': self.reg('joints', deformer)
 
@@ -118,10 +118,10 @@ class MDeformerStack(mrig.MRigComponent):
     def addDeformer(self, nodes, deformerName, deformerType, deformerSet):
 
         if deformerType == 'skinCluster':
-            self.addSkinCluster(nodes, deformerName, deformerSet)
+            return self.addSkinCluster(nodes, deformerName, deformerSet)
 
         elif deformerType == 'deltaMush':
-            self.addDeltaMush(nodes, deformerName, deformerSet)
+            return self.addDeltaMush(nodes, deformerName, deformerSet)
 
         elif deformerType == 'tension':
             return
@@ -154,16 +154,21 @@ class MDeformerStack(mrig.MRigComponent):
         if not len(allJoints):
             allJoints = [self._getDumpjoint()]
 
+        skcs = []
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
             skc = cmds.skinCluster(allJoints, node, bindMethod=0,
                                    n="%s_%s_SKC"%(self.get('name'), node))
-            self.reg('weight', skc)
+            skcs.append(skc)
+
+        return skcs
 
     def addDeltaMush(self, nodes, deformerName, deformerSet):
         fulldeformername = '_%s%s'%(self.get('name'), deformerName.title())
 
+        dms = []
         for e, node in enumerate(nodes, 1):
             if cmds.objectType(node) == 'container': continue
             dm = cmds.deltaMush(node, n="%s_%s_MUSH"%(self.get('name'), node))
-            self.reg('weight', dm)
+            dms.append(dm)
+        return dms

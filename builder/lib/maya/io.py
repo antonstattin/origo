@@ -64,16 +64,16 @@ def importWeight(fPath, cName):
             elif cmds.objectType(geo) == "nurbsCurve":
                 current_points = len(cmds.ls('%s.cv[*]'%geo, fl=True))
 
-
         if points == current_points:
             try:
                 cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
                                  m='index', deformer=deformer, im=True)
             except: logger.info("%s nothing to import.."%(deformer))
         else:
-            cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
+            try:
+                cmds.deformerWeights('%s.xml'%deformer, path=weightfolder,
                                  m='barycentric', deformer=deformer, im=True)
-
+            except: logger.info("%s nothing to import.."%(deformer))
 
 def importSet(fPath, cName):
 
@@ -317,8 +317,8 @@ def exportJoints(nodes, path, dtype, stage, cId, name):
 
     data = {}
     for node in nodes:
-        inf = cmds.skinCluster(node, inf=True, q=True)
-        data.update({node:inf})
+        jointlist = cmds.skinCluster(node, inf=True, q=True)
+        data.update({node[0]:jointlist})
 
     exportData(data, path, dtype, stage, cId)
 
