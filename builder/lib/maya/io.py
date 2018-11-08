@@ -16,12 +16,15 @@ def importJoints(fPath, cName):
         data = json.load(f)
 
     for skc in data.keys():
+
+        if not cmds.objExists(skc): continue
+
         current_inf = cmds.skinCluster(skc, inf=True, q=True)
         saved_inf = data[skc]
 
-        keep = filter(lambda x: x in saved_inf, current_inf)
-        add = filter(lambda x: x not in keep, saved_inf)
-        remove = filter(lambda x: x not in saved_inf, current_inf)
+        keep = filter(lambda x: cmds.objExists(x), filter(lambda x: x in saved_inf, current_inf))
+        add = filter(lambda x: cmds.objExists(x), filter(lambda x: x not in keep, saved_inf))
+        remove = filter(lambda x: cmds.objExists(x), filter(lambda x: x not in saved_inf, current_inf))
 
         if add: cmds.skinCluster(skc, addInfluence=add, e=True)
         if remove: cmds.skinCluster(skc, removeInfluence=remove, e=True)

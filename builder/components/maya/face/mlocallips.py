@@ -148,12 +148,14 @@ class MLocalLips(manimrig.MAnimRigComponent):
     def undo_build(self):
         super(MLocalLips, self).undo_build()
 
-        guides = self.get('position_guides')
+        try:
+            guides = self.get('position_guides')
 
-        if guides:
-            mainMouthGuide = guides[0]
-            cmds.setAttr(mainMouthGuide + '.v', 1)
-
+            if guides:
+                mainMouthGuide = guides[0]
+                cmds.setAttr(mainMouthGuide + '.v', 1)
+        except: pass
+        
     def addArrow(self, pointB, pointA):
         # create arrow
         arrow = cmds.createNode("annotationShape")

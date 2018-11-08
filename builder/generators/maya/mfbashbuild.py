@@ -136,11 +136,7 @@ if __name__ == "__main__":
     print('\n New Rig published..')
 
 
-
-
-
-
-
-
     # print a nice line ending matching the first build print length
     print('\n{}'.format('-'*(16 + len(build_name) + 13)))
+
+    maya.standalone.uninitialize()

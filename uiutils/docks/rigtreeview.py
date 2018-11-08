@@ -80,6 +80,6 @@ class RigTreeView(QtWidgets.QTreeView):
 			self.header().setSectionResizeMode(column, QtWidgets.QHeaderView.Fixed)
 			self.setColumnWidth(column, 50)
 
-		self.setDragDropMode( self.InternalMove )
+		#self.setDragDropMode( self.InternalMove )
 		self.setDragEnabled( True )
 		self.setAcceptDrops( True )

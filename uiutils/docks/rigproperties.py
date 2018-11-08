@@ -9,7 +9,6 @@ from subprocess import call
 
 import origo.uiutils.widgets.propertywidgets as propertywidgets
 
-
 class RigPropertiesPanel(QtWidgets.QWidget):
     """ This Panel is the main widget in RigPropertiesDock
 
@@ -120,6 +119,8 @@ class RigPropertiesPanel(QtWidgets.QWidget):
         # ---- Setup dynamic layout ---- #
         for attrib in node.getPublicAttributes():
 
+
+
             # gather data
             key = attrib[0]
             key_index = node.getKeyIndex(key)
@@ -129,8 +130,12 @@ class RigPropertiesPanel(QtWidgets.QWidget):
             attr_name = meta.get('nicename', key)
             valuetype = meta.get('valuetype', type(value))
 
+            meta.update({'mod_object':node})
+
             # setup custom widget
             if meta.has_key('ui'):
+
+
                 uimoddata = meta.get('ui').rpartition('.')
                 uimod = uimoddata[0]
                 uicls = uimoddata[2]
@@ -156,6 +161,13 @@ class RigPropertiesPanel(QtWidgets.QWidget):
             elif valuetype == bool:
 
                 widget = propertywidgets.RigCheckBoxProperty(attr_name, value, **meta)
+                self._dataMapper.addMapping(widget, key_index, 'valueProperty')
+                widget.doSubmit.connect(self._dataMapper.submit)
+                pFrame.layout().addWidget(widget)
+
+            elif valuetype == int:
+
+                widget = propertywidgets.RigIntProperty(attr_name, value, **meta)
                 self._dataMapper.addMapping(widget, key_index, 'valueProperty')
                 widget.doSubmit.connect(self._dataMapper.submit)
                 pFrame.layout().addWidget(widget)

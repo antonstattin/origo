@@ -174,7 +174,7 @@ class RigData(object):
 
 		# only unique values
 		if data in self._dataDict['regdata']['value'][currentStage][dType]: return
-		
+
 		self._dataDict['regdata']['value'][currentStage][dType].extend(data)
 
 	def add(self, key, value, **kwarg):

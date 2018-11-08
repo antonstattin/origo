@@ -1,6 +1,6 @@
 
 
-import mgear.maya.shifter as shifter
+
 import origo.builder.components.maya.mrigcomponent as mrig
 import maya.cmds as cmds
 import os
@@ -16,7 +16,7 @@ class MGearMod(mrig.MRigComponent):
 
 		self.add('SaveUpdate', '', public=True, ui='origo.uiutils.widgets.'\
                  'propertywidgets.RigActionButtonProperty', icon=':/save.png',
-				 nicename='Save And Update', fnc=self.saveBtnAction)
+				 nicename='Save And Update', fnc="saveBtnAction")
 
 		self.set('icon', ':/humanIK_CharCtrl.png')
 
@@ -81,7 +81,7 @@ class MGearMod(mrig.MRigComponent):
 
 	def build(self):
 		super(MGearMod, self).build()
-
+		import mgear.maya.shifter as shifter
 
 		guidegrp = cmds.ls('guide')
 

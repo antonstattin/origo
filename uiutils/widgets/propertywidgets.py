@@ -33,8 +33,6 @@ class AbstractPropertyWidget(QtWidgets.QWidget):
 	def widget(self): return None
 
 
-
-
 # ------------------- DEFAULT PROPERTYWIDGETS ------------------------ #
 
 
@@ -73,6 +71,40 @@ class RigCheckBoxProperty(AbstractPropertyWidget):
 		return self.checkbox
 
 	valueProperty = QtCore.Property(bool, getValue, setValue)
+
+class RigIntProperty(AbstractPropertyWidget):
+	""" Property for attribute values of type 'bool' """
+
+	def __init__(self, name, value, **kwarg):
+		super(RigIntProperty, self).__init__()
+
+		icon_arg = kwarg.get('icon', ':/done.png')
+		self.pixmap = QtGui.QPixmap(icon_arg)
+		self.pixmap = self.pixmap.scaledToWidth(20, QtCore.Qt.SmoothTransformation)
+		self.icon = QtWidgets.QLabel()
+		self.icon.setPixmap(self.pixmap)
+		self.label = QtWidgets.QLabel(name)
+		self.spinbox = QtWidgets.QSpinBox()
+		self.spinbox.setValue(int(value))
+
+		self.layout().addWidget(self.icon)
+		self.layout().addWidget(self.label)
+		self.layout().addWidget(self.spinbox)
+		self.layout().setAlignment(QtCore.Qt.AlignLeft)
+
+
+		self.spinbox.valueChanged.connect(self.submit)
+
+	def submit(self, value): self.doSubmit.emit()
+
+	def setValue(self, value): return
+
+	def getValue(self): return self.spinbox.value()
+
+	def widget(self):
+		return self.checkbox
+
+	valueProperty = QtCore.Property(int, getValue, setValue)
 
 
 class RigLineEditProperty(AbstractPropertyWidget):
@@ -196,12 +228,17 @@ class RigActionButtonProperty(AbstractPropertyWidget):
 		iconarg = kwarg.get('icon', ':/build.png')
 		nicenamearg = kwarg.get('nicename', name)
 		fnc = kwarg.get('fnc', name)
+		mod = kwarg.get('mod_object', None)
 
 
 		self.actionBtn = QtWidgets.QPushButton(nicenamearg)
 		self.actionBtn.setIcon(QtGui.QIcon(iconarg))
 
-		self.actionBtn.clicked.connect(fnc)
+		if mod:
+			print "HEY"
+			action_method = getattr(mod, fnc)
+			print action_method
+			self.actionBtn.clicked.connect(action_method)
 
 		self.layout().addWidget(self.actionBtn)
 
