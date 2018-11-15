@@ -155,7 +155,7 @@ class MLocalLips(manimrig.MAnimRigComponent):
                 mainMouthGuide = guides[0]
                 cmds.setAttr(mainMouthGuide + '.v', 1)
         except: pass
-        
+
     def addArrow(self, pointB, pointA):
         # create arrow
         arrow = cmds.createNode("annotationShape")
@@ -472,9 +472,14 @@ class MLocalLips(manimrig.MAnimRigComponent):
                 cmds.connectAttr(up_crsPrd + ".outputY", up_aim_mtx + ".in01")
                 cmds.connectAttr(up_crsPrd + ".outputZ", up_aim_mtx + ".in02")
 
-                cmds.connectAttr(up_uVector + ".output3D.output3Dx", up_aim_mtx + ".in10")
-                cmds.connectAttr(up_uVector + ".output3D.output3Dy", up_aim_mtx + ".in11")
-                cmds.connectAttr(up_uVector + ".output3D.output3Dz", up_aim_mtx + ".in12")
+                if i == 1 and i == 7:
+                    cmds.setAttr(up_aim_mtx + ".in10", 0)
+                    cmds.setAttr(up_aim_mtx + ".in11", 1)
+                    cmds.setAttr(up_aim_mtx + ".in12", 0)
+                else:
+                    cmds.connectAttr(up_uVector + ".output3D.output3Dx", up_aim_mtx + ".in10")
+                    cmds.connectAttr(up_uVector + ".output3D.output3Dy", up_aim_mtx + ".in11")
+                    cmds.connectAttr(up_uVector + ".output3D.output3Dz", up_aim_mtx + ".in12")
 
                 cmds.connectAttr(poci_upperDriver + ".result.tangent.tangentX", up_aim_mtx + ".in20")
                 cmds.connectAttr(poci_upperDriver + ".result.tangent.tangentY", up_aim_mtx + ".in21")
@@ -533,9 +538,14 @@ class MLocalLips(manimrig.MAnimRigComponent):
                 cmds.connectAttr(lo_crsPrd + ".outputY", lo_aim_mtx + ".in01")
                 cmds.connectAttr(lo_crsPrd + ".outputZ", lo_aim_mtx + ".in02")
 
-                cmds.connectAttr(lo_uVector + ".output3D.output3Dx", lo_aim_mtx + ".in10")
-                cmds.connectAttr(lo_uVector + ".output3D.output3Dy", lo_aim_mtx + ".in11")
-                cmds.connectAttr(lo_uVector + ".output3D.output3Dz", lo_aim_mtx + ".in12")
+                if i == 1 and i == 7:
+                    cmds.setAttr(lo_uVector + ".in10", 0)
+                    cmds.setAttr(lo_uVector + ".in11", 1)
+                    cmds.setAttr(lo_uVector + ".in12", 0)
+                else:
+                    cmds.connectAttr(lo_uVector + ".output3D.output3Dx", lo_aim_mtx + ".in10")
+                    cmds.connectAttr(lo_uVector + ".output3D.output3Dy", lo_aim_mtx + ".in11")
+                    cmds.connectAttr(lo_uVector + ".output3D.output3Dz", lo_aim_mtx + ".in12")
 
                 cmds.connectAttr(poci_lowerDriver + ".result.tangent.tangentX", lo_aim_mtx + ".in20")
                 cmds.connectAttr(poci_lowerDriver + ".result.tangent.tangentY", lo_aim_mtx + ".in21")
@@ -672,10 +682,100 @@ class MLocalLips(manimrig.MAnimRigComponent):
         cmds.setAttr(l_cornerAim + '.v', 0)
         cmds.setAttr(r_cornerAim + '.v', 0)
         for attr in ['.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz', '.v']:
+
             cmds.setAttr(l_cornerAim + attr, l=True, k=False)
             cmds.setAttr(l_cornerAim + attr, cb=False)
             cmds.setAttr(r_cornerAim + attr, l=True, k=False)
             cmds.setAttr(r_cornerAim + attr, cb=False)
+
+
+        """
+        pinchgrp = cmds.group(em=True, n="%sPinchMover_GRP"%cName)
+        cmds.parent(ogrp, grp)
+
+
+        for i, name in enumerate(['left', 'right']):
+
+            upper_ctl_driver = [upper_ctl_drivers[0], upper_ctl_drivers[4]][i]
+            lower_ctl_driver = [lower_ctl_drivers[0], lower_ctl_drivers[4]][i]
+
+            pma = cmds.createNode('plusMinusAverage', n='_%sPinchTranslate_ADL'%name)
+
+            if i:
+                cmds.connectAttr(rightCorner['ctl'] + '.translate', '%s.input3D[0]'%pma)
+            else:
+                leftmirr = cmds.createNode('multDoubleLinear', n='_%sLeftCornerMirr_MDL'%name)
+                cmds.connectAttr(leftCorner['ctl'] + '.tx', leftmirr + '.input1')
+                cmds.setAttr(leftmirr + '.input2', -1)
+
+                cmds.connectAttr(leftmirr + '.output', '%s.input3D[0].input3Dx'%pma)
+                cmds.connectAttr(leftCorner['ctl'] + '.ty', '%s.input3D[0].input3Dy'%pma)
+                cmds.connectAttr(leftCorner['ctl'] + '.tz', '%s.input3D[0].input3Dz'%pma)
+
+            pinchUpperADL = cmds.createNode('addDoubleLinear', n='_%sPinchUpper_ADL'%name)
+            pinchLowerADL = cmds.createNode('addDoubleLinear', n='_%sPinchLower_ADL'%name)
+
+            pinchUpperMDL = cmds.createNode('multDoubleLinear', n='_%sPinchUpper_MDL'%name)
+            pinchLowerMDL = cmds.createNode('multDoubleLinear', n='_%sPinchLower_MDL'%name)
+
+            cmds.addAttr([leftCorner['ctl'], rightCorner['ctl']][i], ln='upperPinch', dv=0.0)
+            cmds.setAttr("%s.upperPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), cb=True, k=True)
+            cmds.setAttr("%s.upperPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), k=True)
+
+            cmds.addAttr([leftCorner['ctl'], rightCorner['ctl']][i], ln='lowerPinch', dv=0.0)
+            cmds.setAttr("%s.lowerPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), cb=True)
+            cmds.setAttr("%s.lowerPinch"%([leftCorner['ctl'], rightCorner['ctl']][i]), k=True)
+
+            cmds.connectAttr('%s.lowerPinch'%[leftCorner['ctl'], rightCorner['ctl']][i], pinchLowerMDL + '.input1')
+            cmds.connectAttr('%s.upperPinch'%[leftCorner['ctl'], rightCorner['ctl']][i], pinchUpperMDL + '.input1')
+
+            cmds.setAttr(pinchUpperMDL + '.input2', 0.1)
+            cmds.setAttr(pinchLowerMDL + '.input2', -0.1)
+
+            o_up = cmds.group(em=True, n='_%s%sPinchPosUp_GRP'%(cName, name))
+            o_low = cmds.group(em=True, n='_%s%sPinchPosLow_GRP'%(cName, name))
+
+            up = cmds.group(em=True, n='_%s%sPinchPosUp_GRP'%(cName, name))
+            cmds.parent(up, o_up)
+
+            low = cmds.group(em=True, n='_%s%sPinchPosLow_GRP'%(cName, name))
+            cmds.parent(low, o_low)
+
+            cmds.delete(cmds.parentConstraint([upper_ctl_drivers[0], upper_ctl_drivers[4]][i], o_up, mo=False))
+            cmds.delete(cmds.parentConstraint([lower_ctl_drivers[0], lower_ctl_drivers[4]][i], o_low, mo=False))
+
+            cmds.parent(up, pinchgrp)
+            cmds.parent(low, pinchgrp)
+
+            cmds.connectAttr(pma + '.output3D.output3Dx', up + '.tx')
+            cmds.connectAttr(pma + '.output3D.output3Dx', low + '.tx')
+
+            cmds.connectAttr(pma + '.output3D.output3Dy', pinchUpperADL + '.input1')
+            cmds.connectAttr(pma + '.output3D.output3Dy', pinchLowerADL + '.input1')
+
+            cmds.connectAttr(pinchUpperMDL + '.output', pinchUpperADL + '.input2')
+            cmds.connectAttr(pinchLowerMDL + '.output', pinchLowerADL + '.input2')
+
+            cmds.connectAttr(pinchUpperADL + '.output', up + '.ty')
+            cmds.connectAttr(pinchLowerADL + '.output', low + '.ty')
+
+            cmds.connectAttr(pma + '.output3D.output3Dz', up + '.tz')
+            cmds.connectAttr(pma + '.output3D.output3Dz', low + '.tz')
+
+            umat, upwt = matrix.constraint(up, [upper_ctl_drivers[1], upper_ctl_drivers[3]][i],
+                                               [upper_ctl_drivers[0], upper_ctl_drivers[4]][i] )
+
+            lmat, lowt = matrix.constraint(low, [lower_ctl_drivers[1], lower_ctl_drivers[3]][i],
+                                                [lower_ctl_drivers[0], lower_ctl_drivers[4]][i])
+
+            pm.setAttr('%s.wtMatrix[0].weightIn'%(upwt), 0.8)
+            pm.setAttr('%s.wtMatrix[1].weightIn'%(upwt), 0.2)
+
+            pm.setAttr('%s.wtMatrix[0].weightIn'%(lowt), 0.8)
+            pm.setAttr('%s.wtMatrix[1].weightIn'%(lowt), 0.2)
+
+
+        """
 
         # SETUP PINCH!
         for i, name in enumerate(['left', 'right']):
@@ -692,7 +792,6 @@ class MLocalLips(manimrig.MAnimRigComponent):
                 cmds.connectAttr(leftmirr + '.output', '%s.input3D[0].input3Dx'%pma)
                 cmds.connectAttr(leftCorner['ctl'] + '.ty', '%s.input3D[0].input3Dy'%pma)
                 cmds.connectAttr(leftCorner['ctl'] + '.tz', '%s.input3D[0].input3Dz'%pma)
-
 
             pinchUpperADL = cmds.createNode('addDoubleLinear', n='_%sPinchUpper_ADL'%name)
             pinchLowerADL = cmds.createNode('addDoubleLinear', n='_%sPinchLower_ADL'%name)
