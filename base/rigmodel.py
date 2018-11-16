@@ -69,6 +69,15 @@ class RigModel(QtCore.QAbstractItemModel):
 					if stage > 2: return done_icon
 					else: return not_done_icon
 
+			if role == QtCore.Qt.CheckStateRole  and rigNode._type == 2:
+
+				if index.column() == 4:
+
+					if rigNode.get('enabled'):
+						return QtCore.Qt.Checked
+					else:
+						return QtCore.Qt.Unchecked
+
 
 	def setData(self, index, value, role=QtCore.Qt.EditRole):
 		""" set model data """
@@ -78,6 +87,12 @@ class RigModel(QtCore.QAbstractItemModel):
 
 			if role == QtCore.Qt.EditRole:
 				rigNode._setData(index.column(), value)
+				self.dataChanged.emit(index, index)
+
+			if role == QtCore.Qt.CheckStateRole and index.column() == 4:
+				if value: rigNode._setData(5, 1)
+				else: rigNode._setData(5, 0)
+
 				self.dataChanged.emit(index, index)
 
 			return True
@@ -96,10 +111,18 @@ class RigModel(QtCore.QAbstractItemModel):
 		# get rigNode
 		rigNode = index.internalPointer()
 
+
+
 		if rigNode._type:
+			if index.column() == 4:
+				return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled | \
+				   	   QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsSelectable | \
+				   	   QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable
+
 			return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDropEnabled | \
 				   QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsSelectable | \
 				   QtCore.Qt.ItemIsEditable
+
 
 		return QtCore.Qt.ItemIsDropEnabled
 
@@ -107,11 +130,11 @@ class RigModel(QtCore.QAbstractItemModel):
 		""" return the header data to view """
 
 		if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-			return ["Component Name", "Pre", "Run", "Post"][col]
+			return ["Component Name", "Pre", "Run", "Post", "Enabled"][col]
 
 		if role == QtCore.Qt.DecorationRole:
 			resource = [":/console.png", ":/planing.png",
-						":/build.png", ":/connect.png"][col]
+						":/build.png", ":/connect.png", ":/done.png"][col]
 
 			return QtGui.QIcon(QtGui.QPixmap(resource))
 
@@ -125,7 +148,7 @@ class RigModel(QtCore.QAbstractItemModel):
 
 	def columnCount(self, parent):
 		""" return the number of columns """
-		return 4
+		return 5
 
 	def remove(self, row, count, index):
 		""" remove node and subnodes """

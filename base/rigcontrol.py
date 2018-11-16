@@ -89,6 +89,8 @@ class RigControl(object):
 		stagename = ['pre', 'build', 'post'][stage-1]
 
 		for mod in modlist:
+			if not mod.get('enabled'): continue
+
 			if mod._type == 1:
 				mod.set('bstage', stage)
 				continue
@@ -112,6 +114,7 @@ class RigControl(object):
 		if current_stage <= 3:
 			post.reverse()
 			for mod in post:
+				if not mod.get('enabled'): continue
 				if mod._type == 1:
 					mod.set('bstage', 2)
 					continue
@@ -123,6 +126,7 @@ class RigControl(object):
 		if current_stage <= 2:
 			build.reverse()
 			for mod in build:
+				if not mod.get('enabled'): continue
 				if mod._type == 1:
 					mod.set('bstage', 1)
 					continue
@@ -133,6 +137,7 @@ class RigControl(object):
 		if current_stage <= 1:
 			pre.reverse()
 			for mod in pre:
+				if not mod.get('enabled'): continue
 				if mod._type == 1:
 					mod.set('bstage', 0)
 					continue
