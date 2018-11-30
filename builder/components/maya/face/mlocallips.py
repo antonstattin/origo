@@ -9,7 +9,7 @@ import os
 
 import origo.builder.lib.maya.matrix as matrix
 import origo.builder.lib.maya.mcurves as mcurves
-reload(matrix)
+reload(mcurves)
 
 class MLocalLips(manimrig.MAnimRigComponent):
 
@@ -123,6 +123,10 @@ class MLocalLips(manimrig.MAnimRigComponent):
 
         upCrv = mcurves.curve_from_edges(upperLipEdges, cName + 'Upper_CRV')
         lowCrv = mcurves.curve_from_edges(lowerLipEdges, cName + 'Lower_CRV')
+
+        # check side
+        mcurves.checkFixCurveSide(upCrv)
+        mcurves.checkFixCurveSide(lowCrv)
 
 
         upCrvCvs = cmds.ls(upCrv + '.cv[*]', fl=True)

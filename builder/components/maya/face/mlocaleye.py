@@ -95,21 +95,6 @@ class MLocalEye(manimrig.MAnimRigComponent):
         self.add('locrv', dwn)
         self.add('eye', eyegeo)
 
-    def addArrow(self, pointB, pointA):
-        # create arrow
-        arrow = cmds.createNode("annotationShape")
-        arrow_parent = cmds.listRelatives(arrow, p=True)[0]
-        crv = cmds.curve(p=[0,0,0], d=1)
-        cmds.connectAttr(cmds.listRelatives(crv, s=True)[0] +".worldMatrix[0]",
-                     arrow+ ".dagObjectMatrix[0]")
-        crvshp = cmds.listRelatives(crv, s=True)[0]
-        cmds.setAttr(crvshp + ".template", 1)
-        cmds.parent(crvshp, pointA, r=True, s=True)
-        cmds.parent(arrow, pointB, r=True, s=True)
-
-        cmds.delete(arrow_parent)
-        cmds.delete(crv)
-
     def undo_build(self):
         super(MLocalEye, self).undo_build()
 
@@ -126,18 +111,6 @@ class MLocalEye(manimrig.MAnimRigComponent):
         super(MLocalEye, self).post()
         ctls = self.get('animcontrols')
 
-        self.addArrow(ctls[1], ctls[4])
-        self.addArrow(ctls[1], ctls[7])
-
-        self.addArrow(ctls[2], ctls[5])
-        self.addArrow(ctls[2], ctls[8])
-
-        self.addArrow(ctls[4], ctls[3])
-        self.addArrow(ctls[7], ctls[6])
-
-        self.addArrow(ctls[5], ctls[3])
-        self.addArrow(ctls[8], ctls[6])
-
     def build(self):
         super(MLocalEye, self).build()
         cName = self.get('name')
@@ -147,6 +120,12 @@ class MLocalEye(manimrig.MAnimRigComponent):
         locrv = self.get('locrv')
         eyegeo = self.get('eye')
         cavitycrv = self.get('cavitycrv')
+        fleshy = self.get('fleshy')
+
+        if cName.startswith("R_"):
+            cmds.reverseCurve(upcrv, ch=0, rpo=1)
+            cmds.reverseCurve(locrv, ch=0, rpo=1)
+
 
         modgrp = self.getModGroup()
 
@@ -407,6 +386,44 @@ class MLocalEye(manimrig.MAnimRigComponent):
 
         cmds.connectAttr(upBlink['ctl'] + '.ty' , upbmdl + '.input2')
         cmds.connectAttr(dwnBlink['ctl'] + '.ty' , dwnbmdl + '.input2')
+
+        """
+        if fleshy:
+
+            # create autoblink transform
+            autoBlinkTransform = cmds.group(em=True, n="_%sAutoBlink_TRANSFORM"%cName)
+            cmds.delete(cmds.pointConstraint(eyegeo, upAutoBlink, mo=False))
+            cmds.parent(autoBlinkTransform, modgrp)
+            cmds.setAttr(autoBlinkTransform + '.v', 0)
+
+            autoblinkMdl = cmds.createNode('multDoubleLinear', n='_' + cName + 'AutoBlink_ADL')
+            cmds.addAttr(crv_grp, ln='autoBlinkMult', dv=0.1)
+
+            cmds.connectAttr(crv_grp + '.autoBlinkMult', autoblinkMdl + '.input1')
+            cmds.connectAttr(autoBlinkTransform + '.rx', autoblinkMdl + '.input2')
+
+            clamp = cmds.createNode("clamp", n='_' + cName + 'AutoBlink_CLAMP')
+
+            cmds.connectAttr(autoblinkMdl + '.output', clamp + '.inputR')
+            cmds.connectAttr(autoblinkMdl + '.output', clamp + '.inputG')
+
+            cmds.setAttr(clamp + '.minR', -9999)
+            cmds.setAttr(clamp + '.maxG', 9999)
+
+            cmds.connectAttr(clamp + '.outputR', rotDriverUp + '.input2')
+            cmds.connectAttr(clamp + '.outputG', rotDriverLo + '.input2')
+
+            cmds.connectAttr(upbmdl + '.output', upbadl + '.input1')
+            cmds.connectAttr(rotDriverUp + '.output', upbadl + '.input2')
+
+            cmds.connectAttr(dwnbmdl + '.output', upbadl + '.input1')
+            cmds.connectAttr(rotDriverLo + '.output', upbadl + '.input2')
+
+            cmds.connectAttr(upbadl + '.output', upBshpBlink[0] + '.' + lo_blinkShp)
+            cmds.connectAttr(dwnbadl + '.output', dwnBshpBlink[0] + '.' + up_blinkShp)
+
+        else:
+        """
 
         cmds.connectAttr(upbmdl + '.output', upBshpBlink[0] + '.' + lo_blinkShp)
         cmds.connectAttr(dwnbmdl + '.output', dwnBshpBlink[0] + '.' + up_blinkShp)

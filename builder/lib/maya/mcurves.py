@@ -17,6 +17,22 @@ def get_param_from_pos(curve, pos):
     return param
 
 
+def checkFixCurveSide(crv):
+    """ check sides so the curves starts from the left to the right"""
+
+    points = pm.ls("{}.cv[*]".format(crv), fl=True)
+
+    first = points[0]
+    last = points[len(points)-1]
+
+    first_pos = pm.xform(first, t=True, q=True, ws=True)
+    last_pos = pm.xform(last, t=True, q=True, ws=True)
+
+    if first_pos < last_pos:
+        pm.reverseCurve(crv, ch=0, rpo=1)
+
+
+
 def create_edges(name, medges):
     """ creates up and down curve """
 
